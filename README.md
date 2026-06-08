@@ -1,5 +1,13 @@
 # shaapi
 
+[![PyPI version](https://img.shields.io/pypi/v/shaapi?color=teal)](https://pypi.org/project/shaapi/)
+[![Python](https://img.shields.io/pypi/pyversions/shaapi)](https://pypi.org/project/shaapi/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Docs](https://img.shields.io/badge/docs-online-blue)](https://shalom-302.github.io/shaapi/)
+[![Publish to PyPI](https://github.com/Shalom-302/shaapi/actions/workflows/publish.yml/badge.svg)](https://github.com/Shalom-302/shaapi/actions/workflows/publish.yml)
+[![Deploy docs](https://github.com/Shalom-302/shaapi/actions/workflows/docs.yml/badge.svg)](https://github.com/Shalom-302/shaapi/actions/workflows/docs.yml)
+[![Built with FastAPI](https://img.shields.io/badge/built%20with-FastAPI-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
+
 **Scaffold lean, batteries-included FastAPI backends — like `django-admin`, for FastAPI.**
 
 Beginners shouldn't have to architect a production backend from scratch. `shaapi`
