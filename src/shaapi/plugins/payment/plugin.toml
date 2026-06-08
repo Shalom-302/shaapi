@@ -1,0 +1,10 @@
+[plugin]
+name = "payment"
+summary = "Payments with a pluggable provider (Stripe included). Records intents and statuses."
+version = "0.1.0"
+
+[dependencies]
+packages = []
+
+[post_add]
+message = "Payment endpoints are under /admin/api/v1/payments (JWT-protected). Set STRIPE_SECRET_KEY in your .env to enable real Stripe PaymentIntents; without it, payments are recorded as 'pending' so you can build the flow first. Add more providers under backend/plugins/payment/providers.py. Dev auto-creates the table; production: ./docker-run.sh makemigrations \"add payments\""
