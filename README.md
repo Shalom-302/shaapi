@@ -46,6 +46,22 @@ shaapi --version
 ./docker-run.sh down
 ```
 
+## Documentation
+
+Full docs in **English** and **French** under [`docs/`](docs/):
+
+| | English | Français |
+|---|---|---|
+| Getting started | [getting-started](docs/en/getting-started.md) | [démarrage](docs/fr/demarrage.md) |
+| Architecture | [architecture](docs/en/architecture.md) | [architecture](docs/fr/architecture.md) |
+| Create a feature | [create-a-feature](docs/en/create-a-feature.md) | [créer une fonctionnalité](docs/fr/creer-une-fonctionnalite.md) |
+| Deployment | [deployment](docs/en/deployment.md) | [déploiement](docs/fr/deploiement.md) |
+
+## Example
+
+[`examples/todolist`](examples/todolist) — a complete authenticated Todo API
+(JWT, per-user ownership, admin-only endpoint) built on top of shaapi in 5 files.
+
 ## Status
 
 Alpha. See the repo for roadmap and contribution guidelines.
