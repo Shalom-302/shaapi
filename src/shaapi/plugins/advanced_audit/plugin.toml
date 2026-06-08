@@ -1,0 +1,10 @@
+[plugin]
+name = "advanced_audit"
+summary = "Application audit trail — record and query who did what, on which resource."
+version = "0.1.0"
+
+[dependencies]
+packages = []
+
+[post_add]
+message = "Audit endpoints are under /admin/api/v1/audit (JWT-protected). Record events from your own code: `from backend.plugins.advanced_audit.service import audit_service; await audit_service.record(action='order.created', resource='order', user_id=..., details='...')`. Dev auto-creates the table; for production run: ./docker-run.sh makemigrations \"add audit\""
