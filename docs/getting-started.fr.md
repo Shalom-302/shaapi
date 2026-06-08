@@ -87,5 +87,5 @@ que ce qui change. **Changez les secrets avant la production.**
 ## Étapes suivantes
 
 - [Architecture](architecture.md) — comment le projet est organisé
-- [Créer une fonctionnalité](creer-une-fonctionnalite.md) — une API Todo en minutes
-- [Déploiement](deploiement.md) — passer en production
+- [Créer une fonctionnalité](create-a-feature.md) — une API Todo en minutes
+- [Déploiement](deployment.md) — passer en production

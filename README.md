@@ -48,14 +48,17 @@ shaapi --version
 
 ## Documentation
 
-Full docs in **English** and **French** under [`docs/`](docs/):
+📖 **Full documentation site (EN/FR): https://shalom-302.github.io/shaapi/**
 
-| | English | Français |
-|---|---|---|
-| Getting started | [getting-started](docs/en/getting-started.md) | [démarrage](docs/fr/demarrage.md) |
-| Architecture | [architecture](docs/en/architecture.md) | [architecture](docs/fr/architecture.md) |
-| Create a feature | [create-a-feature](docs/en/create-a-feature.md) | [créer une fonctionnalité](docs/fr/creer-une-fonctionnalite.md) |
-| Deployment | [deployment](docs/en/deployment.md) | [déploiement](docs/fr/deploiement.md) |
+Highlights:
+- [Getting started](https://shalom-302.github.io/shaapi/getting-started/)
+- [Learn FastAPI with shaapi](https://shalom-302.github.io/shaapi/learn-fastapi/)
+- [Architecture](https://shalom-302.github.io/shaapi/architecture/)
+- [Build a feature](https://shalom-302.github.io/shaapi/create-a-feature/)
+- [Why Docker?](https://shalom-302.github.io/shaapi/why-docker/)
+- [Deployment](https://shalom-302.github.io/shaapi/deployment/)
+
+The Markdown sources live in [`docs/`](docs/) (English `*.md`, French `*.fr.md`).
 
 ## Example
 

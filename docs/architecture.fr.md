@@ -99,4 +99,4 @@ Les migrations font foi et sont versionnées dans votre dépôt.
 ## Stack technique
 
 FastAPI · SQLAlchemy 2 (async) · Pydantic v2 · Alembic · PostgreSQL · Redis ·
-Casbin · MinIO · uv · Docker. Voir [Créer une fonctionnalité](creer-une-fonctionnalite.md).
+Casbin · MinIO · uv · Docker. Voir [Créer une fonctionnalité](create-a-feature.md).

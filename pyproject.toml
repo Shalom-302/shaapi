@@ -21,6 +21,14 @@ dependencies = [
 [project.urls]
 Homepage = "https://github.com/Shalom-302/shaapi"
 Repository = "https://github.com/Shalom-302/shaapi"
+Documentation = "https://shalom-302.github.io/shaapi/"
+
+# Tooling-only groups (not part of the installed package).
+[dependency-groups]
+docs = [
+    "mkdocs-material>=9.5",
+    "mkdocs-static-i18n>=1.2",
+]
 
 [project.scripts]
 shaapi = "shaapi.cli:app"

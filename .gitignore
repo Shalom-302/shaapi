@@ -168,3 +168,7 @@ changelog.config.js
 
 # uv (commit uv.lock for reproducibility)
 .venv/
+
+# MkDocs build output
+site/
+.cache/

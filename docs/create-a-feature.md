@@ -1,12 +1,12 @@
-# Créer une fonctionnalité — une API Todo
+# Create a feature — a Todo API
 
-Ajoutons une vraie fonctionnalité authentifiée : une **todolist par utilisateur**
-avec règles de propriété et un endpoint réservé aux admins. C'est 5 petits
-fichiers et une ligne — shaapi s'occupe de l'auth, de la BDD et des réponses.
+Let's add a real, authenticated feature: a **per-user todo list** with ownership
+rules and an admin-only "see everything" endpoint. It's 5 small files plus one
+line — and shaapi handles the auth, DB, and responses for you.
 
-> Le code complet est dans [`examples/todolist`](../../examples/todolist).
+> The complete code lives in [`examples/todolist`](https://github.com/Shalom-302/shaapi/tree/main/examples/todolist).
 
-## 1. Le modèle — `backend/models/todo.py`
+## 1. The model — `backend/models/todo.py`
 
 ```python
 import sqlalchemy as sa
@@ -25,13 +25,13 @@ class Todo(Base):
     completed: Mapped[bool] = mapped_column(sa.Boolean, default=False)
 ```
 
-Enregistrez-le dans `backend/models/__init__.py` :
+Register it in `backend/models/__init__.py`:
 
 ```python
 from backend.models.todo import Todo
 ```
 
-## 2. Les schémas — `backend/app/admin/schema/todo.py`
+## 2. The schemas — `backend/app/admin/schema/todo.py`
 
 ```python
 from datetime import datetime
@@ -61,7 +61,7 @@ class GetTodoDetails(SchemaBase):
     created_time: datetime
 ```
 
-## 3. Accès aux données — `backend/crud/crud_todo.py`
+## 3. Data access — `backend/crud/crud_todo.py`
 
 ```python
 from sqlalchemy import desc, select
@@ -96,9 +96,9 @@ class CRUDTodo(CRUDBase[Todo]):
 todo_dao = CRUDTodo(Todo)
 ```
 
-## 4. Logique métier — `backend/app/admin/service/todo_service.py`
+## 4. Business logic — `backend/app/admin/service/todo_service.py`
 
-Les transactions et la règle de propriété vivent ici :
+Transactions and the ownership rule live here:
 
 ```python
 from backend.crud.crud_todo import todo_dao
@@ -120,23 +120,24 @@ class TodoService:
     async def _owned(db, *, pk, owner_id, is_admin):
         todo = await todo_dao.get(db, pk)
         if not todo:
-            raise errors.NotFoundError(msg="Todo introuvable")
+            raise errors.NotFoundError(msg="Todo not found")
         if not is_admin and todo.owner_id != owner_id:
-            raise errors.ForbiddenError(msg="Ce todo ne vous appartient pas")
+            raise errors.ForbiddenError(msg="This todo does not belong to you")
         return todo
-    # get_by_id / update / delete réutilisent _owned — voir examples/todolist
+    # get_by_id / update / delete reuse _owned — see examples/todolist
 
 
 todo_service = TodoService()
 ```
 
-## 5. Le router — `backend/app/admin/api/v1/todo.py`
+## 5. The router — `backend/app/admin/api/v1/todo.py`
 
-Définir un `router` suffit — shaapi le découvre automatiquement. `DependsJwtAuth`
-protège la route ; `request.user` est l'utilisateur connecté.
+Defining a `router` here is all it takes — shaapi discovers it automatically.
+`DependsJwtAuth` protects the route; `request.user` is the logged-in user.
 
 ```python
-from fastapi import APIRouter, Request
+from typing import Annotated
+from fastapi import APIRouter, Path, Request
 from backend.common.response.response_schema import ResponseModel, response_base
 from backend.common.security.jwt import DependsJwtAuth
 from backend.utils.serializers import select_as_dict
@@ -146,38 +147,38 @@ from backend.app.admin.service.todo_service import todo_service
 router = APIRouter(prefix="/todo", tags=["Todo"])
 
 
-@router.post("/", summary="Créer un todo", dependencies=[DependsJwtAuth])
+@router.post("/", summary="Create a todo", dependencies=[DependsJwtAuth])
 async def create_todo(request: Request, obj: CreateTodoParam) -> ResponseModel:
     todo = await todo_service.create(owner_id=request.user.id, obj=obj)
     return response_base.success(request=request, data=GetTodoDetails(**select_as_dict(todo)))
 ```
 
-(Le router complet ajoute list/get/update/delete et un `/todo/all` réservé aux admins.)
+(The full router adds list/get/update/delete and an admin-only `/todo/all`.)
 
-## 6. Lancer & tester
+## 6. Run & test
 
 ```bash
-./docker-run.sh up        # dev : la table est créée automatiquement au démarrage
+./docker-run.sh up        # dev: the table is auto-created on startup
 ```
 
-Ouvrez Swagger sur `http://localhost:8000/admin/api/v1/docs`, créez un compte,
-connectez-vous : les endpoints Todo sont là. Pour une preuve scriptée :
+Open Swagger at `http://localhost:8000/admin/api/v1/docs`, register a user, log
+in, and the Todo endpoints are there. For a scripted proof:
 
 ```bash
 python examples/todolist/smoke_test.py
 ```
 
-Il crée deux utilisateurs, des todos, vérifie qu'un utilisateur **ne peut pas**
-lire le todo d'un autre (`403`), et que `/todo/all` est réservé aux admins.
+It registers two users, creates todos, verifies a user **cannot** read another
+user's todo (`403`), and that `/todo/all` is admin-only.
 
-## Passer en production
+## Going to production
 
-En production, mettez `DB_AUTO_CREATE=false` et générez une migration au lieu de
-compter sur la création automatique :
+In production set `DB_AUTO_CREATE=false` and generate a migration instead of
+relying on auto-create:
 
 ```bash
-./docker-run.sh makemigrations "ajout table todo"
+./docker-run.sh makemigrations "add todo table"
 ```
 
-Le fichier de migration arrive dans `backend/alembic/versions/` — versionnez-le.
-Voir [Déploiement](deploiement.md).
+The migration file lands in `backend/alembic/versions/` — commit it. See
+[Deployment](deployment.md).
