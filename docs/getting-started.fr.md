@@ -89,6 +89,9 @@ shaapi db generate --message "msg" # générer une migration
 shaapi down                        # tout arrêter
 ```
 
+Voilà l'essentiel — consultez la **[référence CLI](cli-reference.md)** pour
+toutes les commandes, options et les équivalents `docker-run.sh`.
+
 ## Configuration
 
 Tout se configure via `.env` (créé automatiquement depuis `.env.template` au
@@ -98,6 +101,7 @@ que ce qui change. **Changez les secrets avant la production.**
 
 ## Étapes suivantes
 
+- [Référence CLI](cli-reference.md) — toutes les commandes et options
 - [Architecture](architecture.md) — comment le projet est organisé
 - [Créer une fonctionnalité](create-a-feature.md) — une API Todo en minutes
 - [Déploiement](deployment.md) — passer en production

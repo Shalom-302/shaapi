@@ -89,6 +89,9 @@ shaapi db generate --message "msg" # generate a migration
 shaapi down                        # stop everything
 ```
 
+These are the essentials — see the **[CLI reference](cli-reference.md)** for
+every command, option and the `docker-run.sh` equivalents.
+
 ## Configuration
 
 Everything is configured through `.env` (created automatically from
@@ -98,6 +101,7 @@ differs. **Change the secrets before going to production.**
 
 ## Next steps
 
+- [CLI reference](cli-reference.md) — every command and option
 - [Architecture](architecture.md) — how the project is organized
 - [Create a feature](create-a-feature.md) — build a Todo API in minutes
 - [Deployment](deployment.md) — ship it to production
