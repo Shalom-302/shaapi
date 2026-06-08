@@ -70,6 +70,7 @@ plugins:
           nav_translations:
             Home: Accueil
             Getting started: Démarrage
+            CLI reference: Référence CLI
             Learn FastAPI: Apprendre FastAPI
             Architecture: Architecture
             Build a feature: Créer une fonctionnalité
@@ -80,6 +81,7 @@ plugins:
 nav:
   - Home: index.md
   - Getting started: getting-started.md
+  - CLI reference: cli-reference.md
   - Learn FastAPI: learn-fastapi.md
   - Architecture: architecture.md
   - Build a feature: create-a-feature.md
