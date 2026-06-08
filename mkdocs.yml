@@ -73,6 +73,7 @@ plugins:
             Learn FastAPI: Apprendre FastAPI
             Architecture: Architecture
             Build a feature: Créer une fonctionnalité
+            Plugins: Plugins
             Why Docker?: Pourquoi Docker ?
             Deployment: Déploiement
 
@@ -82,5 +83,6 @@ nav:
   - Learn FastAPI: learn-fastapi.md
   - Architecture: architecture.md
   - Build a feature: create-a-feature.md
+  - Plugins: plugins.md
   - Why Docker?: why-docker.md
   - Deployment: deployment.md
