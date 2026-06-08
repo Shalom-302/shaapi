@@ -1,6 +1,6 @@
 [project]
 name = "shaapi"
-version = "0.1.1"
+version = "0.1.2"
 description = "Scaffold lean, batteries-included FastAPI backends — like django-admin, for FastAPI."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -35,4 +35,4 @@ build-backend = "hatchling.build"
 packages = ["src/shaapi"]
 
 [tool.hatch.build.targets.sdist]
-include = ["src/shaapi", "README.md", "LICENCE"]
+include = ["src/shaapi", "README.md", "LICENSE"]
