@@ -32,7 +32,9 @@ class Handlers:
 
     @classmethod
     def __module_namespace(cls, module_path: str) -> str:
-        module_path = module_path.replace(os.sep, '.').replace('.py', '')
+        # Normalize both separators so module resolution works on Windows
+        # (os.sep == '\\') and Linux (os.sep == '/') alike.
+        module_path = module_path.replace(os.sep, '.').replace('/', '.').replace('.py', '')
         namespace = '%s.%s' % ('.'.join(cls.handlers_base_path), module_path)
         return namespace
 

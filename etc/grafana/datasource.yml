@@ -16,7 +16,7 @@ datasources:
     type: prometheus
     typeName: Prometheus
     access: proxy
-    url: http://boilerplate_prometheus:9090
+    url: http://shaapi_prometheus:9090
     password: ''
     user: ''
     database: ''
@@ -35,7 +35,7 @@ datasources:
     type: tempo
     typeName: Tempo
     access: proxy
-    url: http://boilerplate_tempo
+    url: http://shaapi_tempo:3200
     password: ''
     user: ''
     database: ''
@@ -63,7 +63,7 @@ datasources:
     type: loki
     typeName: Loki
     access: proxy
-    url: http://boilerplate_loki:3100
+    url: http://shaapi_loki:3100
     password: ''
     user: ''
     database: ''

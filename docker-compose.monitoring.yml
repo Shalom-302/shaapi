@@ -1,0 +1,63 @@
+# Opt-in observability stack. Enable with: ./docker-run.sh up --monitoring
+# Adds Prometheus (metrics), Tempo (traces), Loki (logs) and Grafana (UI),
+# and rebuilds the API image with the `monitoring` extra + observability on.
+services:
+  api:
+    build:
+      args:
+        EXTRAS: "--extra monitoring"
+    environment:
+      - OBSERVABILITY_ENABLED=true
+      - OTLP_GRPC_ENDPOINT=shaapi_tempo:4317
+
+  shaapi_prometheus:
+    image: prom/prometheus:v2.51.2
+    container_name: shaapi_prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./etc/prometheus:/workspace
+    command:
+      - --config.file=/workspace/prometheus.yml
+      - --enable-feature=exemplar-storage
+    networks:
+      - shaapi
+
+  shaapi_tempo:
+    image: grafana/tempo:2.4.1
+    container_name: shaapi_tempo
+    command: ["--target=all", "--storage.trace.backend=local", "--storage.trace.local.path=/var/tempo", "--auth.enabled=false"]
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+    networks:
+      - shaapi
+
+  shaapi_loki:
+    image: grafana/loki:3.0.0
+    container_name: shaapi_loki
+    command: -config.file=/etc/loki/local-config.yaml
+    ports:
+      - "3100:3100"
+    networks:
+      - shaapi
+
+  shaapi_grafana:
+    image: grafana/grafana:10.4.2
+    container_name: shaapi_grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_AUTH_DISABLE_LOGIN_FORM=true
+    volumes:
+      - ./etc/grafana/:/etc/grafana/provisioning/datasources
+      - ./etc/dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml
+      - ./etc/dashboards:/etc/grafana/dashboards
+    depends_on:
+      - shaapi_prometheus
+      - shaapi_tempo
+      - shaapi_loki
+    networks:
+      - shaapi

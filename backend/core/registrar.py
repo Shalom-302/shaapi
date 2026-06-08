@@ -65,7 +65,10 @@ def register_app(router: APIRouter, name: str = "Parse name" ) -> FastAPI:
         redoc_url=f"{settings.FASTAPI_REDOCS_URL}",
         openapi_url=f"{settings.FASTAPI_OPENAPI_URL}",
         default_response_class=MsgSpecJSONResponse,
-        lifespan=register_init,
+        # NOTE: the lifespan is owned by the parent app (see backend/main.py).
+        # Starlette does NOT run the lifespan of mounted sub-applications, so
+        # shared resources (DB tables, Redis, rate limiter) are initialized once
+        # on the parent instead.
     )
 
     # log (computing)
