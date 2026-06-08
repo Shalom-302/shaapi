@@ -82,7 +82,7 @@ Flags clés :
   (`DB_AUTO_CREATE=true`) pour un premier lancement sans friction.
 - **Prod** : `DB_AUTO_CREATE=false` et migrations Alembic
   (`alembic upgrade head`, lancé automatiquement par l'entrypoint). On crée une
-  migration avec `./docker-run.sh makemigrations "message"`.
+  migration avec `shaapi db generate --message "message"`.
 
 Les migrations font foi et sont versionnées dans votre dépôt.
 

@@ -25,11 +25,10 @@ class Todo(Base):
     completed: Mapped[bool] = mapped_column(sa.Boolean, default=False)
 ```
 
-Enregistrez-le dans `backend/models/__init__.py` :
-
-```python
-from backend.models.todo import Todo
-```
+C'est tout — les modèles sont **enregistrés automatiquement**. Tout fichier
+`backend/models/<nom>.py` définissant une sous-classe de `Base` est détecté
+automatiquement par `shaapi db generate` : vous n'avez plus besoin de modifier
+`backend/models/__init__.py`.
 
 ## 2. Les schémas — `backend/app/admin/schema/todo.py`
 
@@ -157,8 +156,12 @@ async def create_todo(request: Request, obj: CreateTodoParam) -> ResponseModel:
 ## 6. Lancer & tester
 
 ```bash
-./docker-run.sh up        # dev : la table est créée automatiquement au démarrage
+shaapi up        # dev : la table est créée automatiquement au démarrage
 ```
+
+> `shaapi` est le runner multiplateforme (pas besoin de bash). Sur Unix, vous
+> pouvez toujours utiliser le script shell optionnel `./docker-run.sh` comme
+> alternative.
 
 Ouvrez Swagger sur `http://localhost:8000/admin/api/v1/docs`, créez un compte,
 connectez-vous : les endpoints Todo sont là. Pour une preuve scriptée :
@@ -176,7 +179,8 @@ En production, mettez `DB_AUTO_CREATE=false` et générez une migration au lieu 
 compter sur la création automatique :
 
 ```bash
-./docker-run.sh makemigrations "ajout table todo"
+shaapi db generate --message "ajout table todo"
+shaapi db apply
 ```
 
 Le fichier de migration arrive dans `backend/alembic/versions/` — versionnez-le.

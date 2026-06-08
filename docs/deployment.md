@@ -11,7 +11,7 @@ production deployment on a VPS.
 | Source | bind-mounted (`.:/app`) | baked into the image |
 | Reload | yes (`--reload`) | no |
 | Schema | auto-created (`DB_AUTO_CREATE=true`) | Alembic migrations |
-| Command | `./docker-run.sh up` | `./docker-run.sh up --prod` |
+| Command | `shaapi up` | `shaapi up --prod` |
 
 ## 1. Production checklist
 
@@ -36,8 +36,12 @@ MINIO_SECRET_KEY=<secret>
 Make sure you have an initial migration committed and your schema is captured:
 
 ```bash
-./docker-run.sh makemigrations "initial"   # if you added models
+shaapi db generate --message "initial"   # if you added models
 ```
+
+`shaapi` is the cross-platform runner (no bash required). On a Unix shell the
+`./docker-run.sh` script is an equivalent alternative
+(`./docker-run.sh makemigrations "initial"`).
 
 ## 2. Provision a VPS
 
@@ -48,25 +52,26 @@ Any Linux box with Docker works (Ubuntu shown):
 curl -fsSL https://get.docker.com | sh
 sudo usermod -aG docker $USER   # re-login afterwards
 git clone <your-project-repo> my_api && cd my_api
+pip install shaapi                      # cross-platform runner (or use ./docker-run.sh)
 cp .env.template .env && nano .env      # apply the checklist above
 ```
 
 ## 3. Start in production mode
 
 ```bash
-./docker-run.sh up --prod
+shaapi up --prod
 ```
 
 This builds the slim image and runs the stack **without** the dev bind-mount,
 serving the baked code. The entrypoint runs `alembic upgrade head` on start, so
 your schema is migrated automatically.
 
-Useful prod commands:
+Useful commands once it's running:
 
 ```bash
-./docker-run.sh logs --prod
-./docker-run.sh migrate --prod
-./docker-run.sh down --prod
+shaapi logs              # tail logs of the running stack
+shaapi db apply          # re-run migrations if needed
+shaapi down              # stop the stack
 ```
 
 ## 4. TLS / reverse proxy
@@ -86,7 +91,7 @@ nginx work just as well.
 ## 5. Observability (optional)
 
 ```bash
-./docker-run.sh up --prod --monitoring
+shaapi up --prod --monitoring
 ```
 
 Adds Prometheus, Tempo, Loki and Grafana, and rebuilds the API image with the
@@ -114,7 +119,7 @@ service to your compose file.
 
 ```bash
 git pull
-./docker-run.sh up --prod        # rebuilds only if deps/code changed
+shaapi up --prod        # rebuilds only if deps/code changed
 ```
 
 Because dependencies are pinned in `uv.lock`, builds are reproducible.

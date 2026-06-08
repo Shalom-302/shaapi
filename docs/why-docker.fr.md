@@ -13,7 +13,7 @@ correspondre à la main. D'où le classique *« ça marche sur ma machine »*.
 Avec shaapi, toute la stack est décrite en code :
 
 ```bash
-./docker-run.sh up
+shaapi up
 ```
 
 Une seule commande donne à **chaque** développeur — et à la production — la
@@ -65,15 +65,20 @@ Le `docker-compose.yml` de base déclare les services et leurs connexions :
 `docker-compose.override.yml` ajoute le montage de dev automatiquement ;
 `docker-compose.monitoring.yml` ajoute la stack d'observabilité optionnelle.
 
-`docker-run.sh` est un wrapper simple et pratique au-dessus de tout ça :
+`shaapi` est le wrapper multiplateforme au-dessus de tout ça : il pilote
+directement `docker compose` et fonctionne sur **Windows, macOS et Linux**, sans
+bash :
 
 ```bash
-./docker-run.sh up | down | logs | api-logs | restart-api
-./docker-run.sh shell | db | redis
-./docker-run.sh migrate | makemigrations "msg"
-./docker-run.sh up --monitoring        # + Prometheus/Grafana/Tempo/Loki
-./docker-run.sh up --prod              # mode production
+shaapi up | down | logs | restart api
+shaapi shell | db shell | redis
+shaapi db apply | db generate --message "msg"
+shaapi up --monitoring        # + Prometheus/Grafana/Tempo/Loki
+shaapi up --prod              # mode production
 ```
+
+Sous Unix, le script shell fourni `./docker-run.sh` est l'équivalent pour ceux
+qui le préfèrent — il pilote la même stack.
 
 ## Utilisable pour un gros projet ?
 
@@ -88,7 +93,7 @@ Tout à fait — le setup Docker est fait pour grandir :
   déboguer sous charge.
 - **CI/CD** — le build reproductible s'intègre dans n'importe quel pipeline.
 
-Le même `docker-run.sh up` qu'un étudiant lance sur son portable est la fondation
+Le même `shaapi up` qu'un étudiant lance sur son portable est la fondation
 qu'une équipe fait tourner en production. C'est tout l'intérêt.
 
 Voir [Déploiement](deployment.md) pour un parcours concret VPS + TLS.

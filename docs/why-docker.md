@@ -13,7 +13,7 @@ classic *"works on my machine"*.
 With shaapi, the entire stack is described in code:
 
 ```bash
-./docker-run.sh up
+shaapi up
 ```
 
 One command gives **every** developer — and production — the *same* API,
@@ -65,15 +65,17 @@ The base `docker-compose.yml` declares the services and how they connect:
 `docker-compose.override.yml` adds the dev bind-mount automatically;
 `docker-compose.monitoring.yml` adds the optional observability stack.
 
-`docker-run.sh` is a thin, friendly wrapper over all of that:
+`shaapi` is the cross-platform wrapper over all of that — it drives `docker
+compose` directly and works on Windows, macOS and Linux, no bash required:
 
 ```bash
-./docker-run.sh up | down | logs | api-logs | restart-api
-./docker-run.sh shell | db | redis
-./docker-run.sh migrate | makemigrations "msg"
-./docker-run.sh up --monitoring        # + Prometheus/Grafana/Tempo/Loki
-./docker-run.sh up --prod              # production mode
+shaapi up | down | logs | restart api | shell | db shell | redis
+shaapi db apply | db generate --message "msg"
+shaapi up --monitoring                 # + Prometheus/Grafana/Tempo/Loki
+shaapi up --prod                       # production mode
 ```
+
+`./docker-run.sh` is the equivalent shell script for Unix users who prefer it.
 
 ## Can I use this for a big project?
 
@@ -88,7 +90,7 @@ Absolutely — the Docker setup is designed to grow:
   need to debug under load.
 - **CI/CD** — the reproducible build slots straight into any pipeline.
 
-The same `docker-run.sh up` that a student runs on their laptop is the foundation
+The same `shaapi up` that a student runs on their laptop is the foundation
 a team runs in production. That's the point.
 
 See [Deployment](deployment.md) for a concrete VPS + TLS walkthrough.

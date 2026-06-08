@@ -25,11 +25,9 @@ class Todo(Base):
     completed: Mapped[bool] = mapped_column(sa.Boolean, default=False)
 ```
 
-Register it in `backend/models/__init__.py`:
-
-```python
-from backend.models.todo import Todo
-```
+That's all — models are **auto-registered**. Any `backend/models/<name>.py`
+defining a `Base` subclass is picked up automatically by `shaapi db generate`,
+so you no longer need to edit `backend/models/__init__.py`.
 
 ## 2. The schemas — `backend/app/admin/schema/todo.py`
 
@@ -158,8 +156,11 @@ async def create_todo(request: Request, obj: CreateTodoParam) -> ResponseModel:
 ## 6. Run & test
 
 ```bash
-./docker-run.sh up        # dev: the table is auto-created on startup
+shaapi up        # dev: the table is auto-created on startup
 ```
+
+> `shaapi` is the cross-platform runner (no bash required). On Unix you can
+> still use the optional `./docker-run.sh` shell script as an alternative.
 
 Open Swagger at `http://localhost:8000/admin/api/v1/docs`, register a user, log
 in, and the Todo endpoints are there. For a scripted proof:
@@ -177,7 +178,8 @@ In production set `DB_AUTO_CREATE=false` and generate a migration instead of
 relying on auto-create:
 
 ```bash
-./docker-run.sh makemigrations "add todo table"
+shaapi db generate --message "add todo table"
+shaapi db apply
 ```
 
 The migration file lands in `backend/alembic/versions/` — commit it. See

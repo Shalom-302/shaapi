@@ -10,8 +10,8 @@ hide:
 
 shaapi vous donne en quelques secondes un projet FastAPI propre et prêt pour la
 production : SQLAlchemy async + Alembic, PostgreSQL, Redis, auth JWT, RBAC
-Casbin, stockage de fichiers et un workflow Docker en une commande. Arrêtez de
-câbler de l'infra — codez vos fonctionnalités.
+Casbin, stockage de fichiers et une CLI `shaapi` multiplateforme qui pilote
+docker compose. Arrêtez de câbler de l'infra — codez vos fonctionnalités.
 
 <div class="grid cards" markdown>
 
@@ -19,7 +19,7 @@ câbler de l'infra — codez vos fonctionnalités.
 
     ---
 
-    `pip install shaapi` → `shaapi create-project` → une API qui tourne en moins d'une minute.
+    `pip install shaapi` → `shaapi new` → `shaapi up` → une API qui tourne en moins d'une minute.
 
 -   :material-layers-triple: **Architecture propre**
 
@@ -32,8 +32,8 @@ câbler de l'infra — codez vos fonctionnalités.
 
     ---
 
-    Image slim multi-stage, hot-reload en dev, migrations en prod, un seul
-    `docker-run.sh` pour tout piloter.
+    Image slim multi-stage, hot-reload en dev, migrations en prod, le tout
+    piloté par la CLI `shaapi` multiplateforme (Windows/macOS/Linux, sans bash).
 
 -   :material-school: **Apprendre en lisant**
 
@@ -48,10 +48,12 @@ câbler de l'infra — codez vos fonctionnalités.
 
 ```bash
 pip install shaapi
-shaapi create-project "mon api"
+shaapi new "mon api"
 cd mon_api
-./docker-run.sh up
+shaapi up
 ```
+
+Vous pouvez ensuite créer un compte admin avec `shaapi auth init`.
 
 → API sur **http://localhost:8000** · Swagger sur **http://localhost:8000/admin/api/v1/docs**
 
@@ -62,7 +64,7 @@ cd mon_api
 - **PostgreSQL + Redis** (cache & limitation de débit)
 - **Auth JWT + RBAC Casbin** — utilisateurs, rôles, permissions
 - **Stockage de fichiers** — MinIO / S3 / GCS
-- **Docker** — image slim multi-stage construite avec [uv], hot-reload, `docker-run.sh`
+- **Docker** — image slim multi-stage construite avec [uv], hot-reload, pilotée par la CLI `shaapi` multiplateforme (`./docker-run.sh` reste une alternative shell Unix optionnelle)
 - **Observabilité optionnelle** — Prometheus, Grafana, Tempo, Loki
 
 Sur la stack la plus récente : **SQLAlchemy 2.0** · **Pydantic v2** · **FastAPI**.

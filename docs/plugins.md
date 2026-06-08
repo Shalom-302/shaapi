@@ -18,10 +18,10 @@ shaapi remove advanced_auth  # remove it
 
 `add` also injects any Python dependencies the plugin needs into your
 `pyproject.toml` and refreshes `uv.lock`, so it builds out of the box. After
-adding, reload the API (`./docker-run.sh restart-api`) or rebuild.
+adding, reload the API (`shaapi restart api`) or rebuild.
 
 In development the plugin's tables auto-create on startup. For production,
-generate a migration: `./docker-run.sh makemigrations "add <plugin>"`.
+generate a migration: `shaapi db generate --message "add <plugin>"`.
 
 ## Available plugins (v0.2.0)
 

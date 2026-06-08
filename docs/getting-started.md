@@ -23,7 +23,7 @@ pip install shaapi
 ## Create a project
 
 ```bash
-shaapi create-project "my api"
+shaapi new "my api"
 ```
 
 You'll be asked a couple of questions:
@@ -37,9 +37,9 @@ shaapi creating project my_api
 Skip the prompts with `-y`, or set everything explicitly:
 
 ```bash
-shaapi create-project "my api" -y                 # accept defaults
-shaapi create-project "my api" --monitoring --no-git
-shaapi create-project "my api" --path ./projects
+shaapi new "my api" -y                 # accept defaults
+shaapi new "my api" --monitoring --no-git
+shaapi new "my api" --path ./projects
 ```
 
 The project name is turned into a safe slug (`my api` → `my_api`) used for the
@@ -49,8 +49,12 @@ folder, the Docker containers, the database and the app title.
 
 ```bash
 cd my_api
-./docker-run.sh up
+shaapi up                # build + start everything (cross-platform, no bash)
 ```
+
+> `shaapi` wraps `docker compose` directly, so the same commands work on
+> **Windows, macOS and Linux**. On Unix you can also use the bundled
+> `./docker-run.sh` shell script — it drives the same stack.
 
 That builds the API image and starts everything (API, Postgres, Redis, MinIO):
 
@@ -62,19 +66,27 @@ That builds the API image and starts everything (API, Postgres, Redis, MinIO):
 In development the source is **bind-mounted with hot-reload** — edit your code
 and the server reloads instantly, no rebuild needed.
 
+Once the stack is up, create an admin user (to log into Swagger) and the
+storage bucket:
+
+```bash
+shaapi auth init         # interactive: email + password
+shaapi storage init      # create the MinIO/S3 bucket
+```
+
 ## Everyday commands
 
 ```bash
-./docker-run.sh up                    # start (build if needed)
-./docker-run.sh up --monitoring       # + Prometheus/Grafana/Tempo/Loki
-./docker-run.sh logs                  # tail all logs
-./docker-run.sh api-logs              # tail API logs only
-./docker-run.sh restart-api           # restart just the API
-./docker-run.sh shell                 # shell inside the API container
-./docker-run.sh db                    # psql into Postgres
-./docker-run.sh migrate               # alembic upgrade head
-./docker-run.sh makemigrations "msg"  # generate a migration
-./docker-run.sh down                  # stop everything
+shaapi up                          # start (build if needed)
+shaapi up --monitoring             # + Prometheus/Grafana/Tempo/Loki
+shaapi logs                        # tail all logs
+shaapi logs api                    # tail API logs only
+shaapi restart api                 # restart just the API
+shaapi shell                       # shell inside the API container
+shaapi db shell                    # psql into Postgres
+shaapi db apply                    # alembic upgrade head
+shaapi db generate --message "msg" # generate a migration
+shaapi down                        # stop everything
 ```
 
 ## Configuration

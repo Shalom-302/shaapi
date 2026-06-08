@@ -82,7 +82,7 @@ flags:
   zero-friction first run.
 - **Prod**: set `DB_AUTO_CREATE=false` and use Alembic migrations
   (`alembic upgrade head`, run automatically by the entrypoint). Author new
-  migrations with `./docker-run.sh makemigrations "message"`.
+  migrations with `shaapi db generate --message "message"`.
 
 Migrations are the source of truth and are committed to your repo.
 

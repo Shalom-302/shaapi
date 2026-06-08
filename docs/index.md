@@ -10,8 +10,8 @@ hide:
 
 shaapi gives you a clean, production-shaped FastAPI project in seconds: async
 SQLAlchemy + Alembic, PostgreSQL, Redis, JWT auth, Casbin RBAC, file storage and
-a one-command Docker workflow. Stop wiring infrastructure — start building
-features.
+a cross-platform `shaapi` CLI that wraps docker compose. Stop wiring
+infrastructure — start building features.
 
 <div class="grid cards" markdown>
 
@@ -19,7 +19,7 @@ features.
 
     ---
 
-    `pip install shaapi` → `shaapi create-project` → a working API in under a minute.
+    `pip install shaapi` → `shaapi new` → `shaapi up` → a working API in under a minute.
 
 -   :material-layers-triple: **Clean architecture**
 
@@ -32,8 +32,8 @@ features.
 
     ---
 
-    Multi-stage slim image, hot-reload in dev, migrations in prod, one
-    `docker-run.sh` to drive it all.
+    Multi-stage slim image, hot-reload in dev, migrations in prod, driven by
+    the cross-platform `shaapi` CLI (Windows/macOS/Linux, no bash).
 
 -   :material-school: **Learn by reading**
 
@@ -48,10 +48,12 @@ features.
 
 ```bash
 pip install shaapi
-shaapi create-project "my api"
+shaapi new "my api"
 cd my_api
-./docker-run.sh up
+shaapi up
 ```
+
+Then optionally create an admin user with `shaapi auth init`.
 
 → API at **http://localhost:8000** · Swagger at **http://localhost:8000/admin/api/v1/docs**
 
@@ -62,7 +64,7 @@ cd my_api
 - **PostgreSQL + Redis** (cache & rate limiting)
 - **JWT auth + Casbin RBAC** — users, roles, permissions
 - **File storage** — MinIO / S3 / GCS
-- **Docker** — slim multi-stage image built with [uv], hot-reload, `docker-run.sh`
+- **Docker** — slim multi-stage image built with [uv], hot-reload, driven by the cross-platform `shaapi` CLI (`./docker-run.sh` remains as an optional Unix shell alternative)
 - **Opt-in observability** — Prometheus, Grafana, Tempo, Loki
 
 Built on the latest stack: **SQLAlchemy 2.0** · **Pydantic v2** · **FastAPI**.

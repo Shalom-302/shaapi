@@ -11,7 +11,7 @@ production sur un VPS.
 | Code source | monté (`.:/app`) | figé dans l'image |
 | Reload | oui (`--reload`) | non |
 | Schéma | auto-créé (`DB_AUTO_CREATE=true`) | migrations Alembic |
-| Commande | `./docker-run.sh up` | `./docker-run.sh up --prod` |
+| Commande | `shaapi up` | `shaapi up --prod` |
 
 ## 1. Checklist de production
 
@@ -36,8 +36,11 @@ MINIO_SECRET_KEY=<secret>
 Assurez-vous d'avoir une migration initiale versionnée et votre schéma capturé :
 
 ```bash
-./docker-run.sh makemigrations "initial"   # si vous avez ajouté des modèles
+shaapi db generate --message "initial"   # si vous avez ajouté des modèles
 ```
+
+`shaapi` est le runner multiplateforme (sans bash). Sous un shell Unix, le script
+`./docker-run.sh` en est l'équivalent (`./docker-run.sh makemigrations "initial"`).
 
 ## 2. Provisionner un VPS
 
@@ -48,25 +51,26 @@ N'importe quelle machine Linux avec Docker convient (exemple Ubuntu) :
 curl -fsSL https://get.docker.com | sh
 sudo usermod -aG docker $USER   # se reconnecter ensuite
 git clone <votre-depot> mon_api && cd mon_api
+pip install shaapi                      # runner multiplateforme (ou ./docker-run.sh)
 cp .env.template .env && nano .env      # appliquer la checklist ci-dessus
 ```
 
 ## 3. Démarrer en mode production
 
 ```bash
-./docker-run.sh up --prod
+shaapi up --prod
 ```
 
 L'image slim est construite et la stack tourne **sans** le montage de dev, en
 servant le code figé. L'entrypoint exécute `alembic upgrade head` au démarrage :
 votre schéma est migré automatiquement.
 
-Commandes utiles en prod :
+Commandes utiles une fois la stack lancée :
 
 ```bash
-./docker-run.sh logs --prod
-./docker-run.sh migrate --prod
-./docker-run.sh down --prod
+shaapi logs              # suivre les logs de la stack
+shaapi db apply          # relancer les migrations si besoin
+shaapi down              # arrêter la stack
 ```
 
 ## 4. TLS / reverse proxy
@@ -86,7 +90,7 @@ Traefik ou nginx font tout aussi bien l'affaire.
 ## 5. Observabilité (optionnel)
 
 ```bash
-./docker-run.sh up --prod --monitoring
+shaapi up --prod --monitoring
 ```
 
 Ajoute Prometheus, Tempo, Loki et Grafana, et reconstruit l'image de l'API avec
@@ -114,7 +118,7 @@ Pour des sauvegardes automatiques avec rotation, ajoutez un service
 
 ```bash
 git pull
-./docker-run.sh up --prod        # rebuild seulement si deps/code ont changé
+shaapi up --prod        # rebuild seulement si deps/code ont changé
 ```
 
 Les dépendances étant épinglées dans `uv.lock`, les builds sont reproductibles.
