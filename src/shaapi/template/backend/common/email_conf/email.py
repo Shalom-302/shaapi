@@ -15,7 +15,7 @@ from backend.core.conf import settings
 # from backend.common.enums import Token_type
 # from app.core.security import generate_secret_token
 # from app.models import User
-# from backend.schemas.token import Token
+# from backend.app.admin.schema.token import Token
 
 env = Environment(
     loader=PackageLoader("backend", f"{settings.EMAIL_TEMPLATES_DIR}/"),

@@ -6,7 +6,7 @@ from pydantic_core import from_json
 from starlette.authentication import AuthCredentials, AuthenticationBackend, AuthenticationError
 from starlette.requests import HTTPConnection
 
-from backend.schemas.user import CurrentUserIns
+from backend.app.admin.schema.user import CurrentUserIns
 from backend.common.exception.errors import TokenError
 from backend.common.log import log
 from backend.common.security import jwt

@@ -9,7 +9,7 @@ from backend.app.admin.service.secure_token_service import secure_token_service
 from backend.common.enums import Secure_token_type
 from backend.crud.crud_user import user_dao
 from backend.models import User
-from backend.schemas.user import (
+from backend.app.admin.schema.user import (
     UpdatePasswordParam,
     UserResetPassword,
     UpdateUserParam

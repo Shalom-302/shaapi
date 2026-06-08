@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from backend.common.enums import Secure_token_type
 from backend.common.exception import errors
 from backend.common.security.sec_token import generate_secret_token
-from backend.schemas.token import Secure_token
+from backend.app.admin.schema.token import Secure_token
 from backend.database.db_redis import redis_client
 from backend.core.conf import settings
 

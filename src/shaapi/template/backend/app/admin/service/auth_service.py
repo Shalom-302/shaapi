@@ -5,7 +5,7 @@ from starlette.background import BackgroundTask, BackgroundTasks
 
 from backend.crud.crud_user import user_dao
 from backend.models.user import User
-from backend.schemas.token import GetLoginToken, GetNewToken
+from backend.app.admin.schema.token import GetLoginToken, GetNewToken
 from backend.app.admin.schema.user import UserLoginSchema, UserRegister
 from backend.app.admin.service.login_log_service import LoginLogService
 from backend.common.enums import LoginLogStatusType

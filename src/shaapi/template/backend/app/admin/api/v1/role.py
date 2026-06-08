@@ -4,7 +4,7 @@ from backend.common.pagination import DependsPagination, paging_data
 from backend.database.db_postgres import CurrentSession
 from backend.utils.serializers import select_as_dict, select_list_serialize
 
-from backend.schemas.role import GetRoleListDetails, UpdateRoleParam, CreateRoleParam
+from backend.app.admin.schema.role import GetRoleListDetails, UpdateRoleParam, CreateRoleParam
 from backend.app.admin.service.role_service import role_service
 from backend.common.response.response_schema import ResponseModel, response_base
 from backend.common.security.jwt import DependsJwtAuth

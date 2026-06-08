@@ -5,7 +5,7 @@ from typing_extensions import Self
 
 from backend.common.enums import StatusType
 from backend.common.schema import SchemaBase
-from backend.schemas.role import GetRoleListDetails
+from backend.app.admin.schema.role import GetRoleListDetails
 
 
 
@@ -32,6 +32,18 @@ class UserRegister(SchemaBase):
 
 class UserUpdate(UserBase):
     pass
+
+
+class UpdateUserParam(SchemaBase):
+    firstname: str | None = None
+    lastname: str | None = None
+    email: EmailStr | None = None
+    phone: str | None = None
+
+
+class UserResetPassword(SchemaBase):
+    new_password: str
+    confirm_password: str
 
 
 class UserInfoSchemaBase(UserBase):

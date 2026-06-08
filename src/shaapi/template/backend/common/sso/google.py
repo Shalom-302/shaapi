@@ -7,11 +7,11 @@ from pydantic_core import Url
 
 from .base import OAuthBase
 from backend.core.conf import settings
-from backend.schemas.sso import OAuthCodeResponseSchema
-from backend.schemas.sso import OAuthRedirectLink
-from backend.schemas.sso import OAuthTokenResponseSchema
-from backend.schemas.sso import OAuthUserDataResponseSchema
-from backend.schemas.sso import SocialTypes
+from backend.app.admin.schema.sso import OAuthCodeResponseSchema
+from backend.app.admin.schema.sso import OAuthRedirectLink
+from backend.app.admin.schema.sso import OAuthTokenResponseSchema
+from backend.app.admin.schema.sso import OAuthUserDataResponseSchema
+from backend.app.admin.schema.sso import SocialTypes
 
 
 class GoogleOAuth(OAuthBase):
