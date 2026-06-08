@@ -56,8 +56,8 @@ def register_app(router: APIRouter, name: str = "Parse name" ) -> FastAPI:
     app = FastAPI(
         title=f"[{settings.ENVIRONMENT.upper()}] {settings.FASTAPI_TITLE} {name.upper()}",
         contact={
-            "name": "Kaanari boilerplate",
-            "email": "admin@kaanari.com",
+            "name": "shaapi",
+            "email": "shalomtehe219@gmail.com",
         },
         version=settings.FASTAPI_VERSION,
         description=settings.FASTAPI_DESCRIPTION,
