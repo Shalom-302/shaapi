@@ -186,12 +186,60 @@ def add_plugin(name: str, project_dir: Path | str = ".") -> dict:
             target.write_text(f.read_text(encoding="utf-8"), encoding="utf-8", newline="\n")
 
     meta = tomllib.loads(manifest.read_text(encoding="utf-8"))
+    packages = meta.get("dependencies", {}).get("packages", [])
+    added = _add_deps_to_pyproject(root, packages)
+    locked = _uv_lock(root) if added else None
     return {
         "name": name,
         "dest": dest,
-        "packages": meta.get("dependencies", {}).get("packages", []),
+        "packages": packages,
+        "added_deps": added,
+        "locked": locked,
         "message": meta.get("post_add", {}).get("message", ""),
     }
+
+
+def _add_deps_to_pyproject(root: Path, packages: list[str]) -> list[str]:
+    """Append missing packages to the project's [project].dependencies array.
+
+    Returns the packages that were actually added. Best-effort text insertion
+    (preserves the file); no-op for packages already present.
+    """
+    if not packages:
+        return []
+    pyproject = root / "pyproject.toml"
+    text = pyproject.read_text(encoding="utf-8")
+    lines = text.splitlines()
+    # Locate the `dependencies = [` ... `]` block.
+    start = next((i for i, ln in enumerate(lines) if ln.strip().startswith("dependencies = [")), None)
+    if start is None:
+        return []
+    end = next((i for i in range(start + 1, len(lines)) if lines[i].strip() == "]"), None)
+    if end is None:
+        return []
+    existing = "\n".join(lines[start:end]).lower()
+    added = []
+    insert_at = end
+    for pkg in packages:
+        bare = re.split(r"[<>=!~ \[]", pkg, 1)[0].lower()
+        if bare and bare not in existing:
+            lines.insert(insert_at, f'    "{pkg}",')
+            insert_at += 1
+            added.append(pkg)
+    if added:
+        pyproject.write_text("\n".join(lines) + "\n", encoding="utf-8", newline="\n")
+    return added
+
+
+def _uv_lock(root: Path) -> bool:
+    """Run `uv lock` in the project to refresh uv.lock. Returns True on success."""
+    for cmd in (["uv", "lock"], ["python", "-m", "uv", "lock"]):
+        try:
+            subprocess.run(cmd, cwd=root, check=True, capture_output=True)
+            return True
+        except (subprocess.CalledProcessError, FileNotFoundError, OSError):
+            continue
+    return False
 
 
 def remove_plugin(name: str, project_dir: Path | str = ".") -> Path:

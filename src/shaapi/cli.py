@@ -108,12 +108,15 @@ def add_command(
         raise typer.Exit(code=1)
 
     lines = [f"[green][OK][/] Added plugin [bold]{name}[/] -> {res['dest']}"]
-    if res["packages"]:
-        deps = " ".join(res["packages"])
-        lines.append(
-            f"\n[yellow]This plugin needs extra dependencies:[/] {deps}\n"
-            f"Add them to pyproject.toml, then run [bold]uv lock[/]."
-        )
+    if res.get("added_deps"):
+        deps = " ".join(res["added_deps"])
+        if res.get("locked"):
+            lines.append(f"\n[green]Added dependencies[/] ({deps}) and refreshed uv.lock.")
+        else:
+            lines.append(
+                f"\n[yellow]Added dependencies[/] ({deps}) to pyproject.toml.\n"
+                f"Run [bold]uv lock[/] to refresh the lockfile before building."
+            )
     if res["message"]:
         lines.append(f"\n{res['message']}")
     lines.append("\nRestart the API to load it: [bold]./docker-run.sh restart-api[/]")
