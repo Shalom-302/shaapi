@@ -33,7 +33,7 @@ from backend.common.model import MappedBase
 # if add new app, do like this
 from backend.models import *  # noqa: F401
 
-# Register models from installed plugins (added via `shaapi add <name>`) so
+# Register models from installed plugins (added via `{{cli}} add <name>`) so
 # autogenerate sees their tables. No-op when there are no plugins.
 try:
     import importlib

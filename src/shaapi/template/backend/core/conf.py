@@ -26,7 +26,7 @@ class Settings(BaseSettings):
 
     # Database schema bootstrap: in dev, tables are auto-created on startup for a
     # zero-friction first run. In production set DB_AUTO_CREATE=false and rely on
-    # Alembic migrations (`shaapi makemigrations` / `shaapi migrate`).
+    # Alembic migrations (`{{cli}} db generate` / `{{cli}} db apply`).
     DB_AUTO_CREATE: bool = True
 
     # Observability (opt-in). When disabled, the OpenTelemetry/Prometheus stack

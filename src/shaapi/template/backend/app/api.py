@@ -19,7 +19,7 @@ for handler in Handlers.iterator():
 
 
 def _load_plugins() -> None:
-    """Auto-discover plugins added with `shaapi add <name>`.
+    """Auto-discover plugins added with `{{cli}} add <name>`.
 
     Each plugin lives in ``backend/plugins/<name>/`` and exposes a ``router`` in
     its ``router`` module. Nothing is imported unless the plugin exists — the

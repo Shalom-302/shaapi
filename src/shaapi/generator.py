@@ -40,10 +40,18 @@ def slugify(name: str) -> str:
 
 
 def _rebrand(text: str, slug: str) -> str:
-    """Replace the shaapi identifier with the project slug, preserving case."""
+    """Replace the shaapi *identifier* with the project slug, preserving case.
+
+    The literal CLI/tool name and its repo URL must survive rebranding (a
+    generated project is still managed with the ``shaapi`` command, not a
+    command named after the project). Author those spots in the template as the
+    ``{{cli}}`` sentinel, which is restored to ``shaapi`` here *after* the
+    identifier rebrand.
+    """
     text = text.replace("SHAAPI", slug.upper())
     text = text.replace("Shaapi", slug.capitalize())
     text = text.replace("shaapi", slug)
+    text = text.replace("{{cli}}", "shaapi")
     return text
 
 
@@ -140,13 +148,17 @@ def list_plugins() -> list[dict]:
     return out
 
 
-def _find_project_root(start: Path | str) -> Path | None:
+def find_project_root(start: Path | str) -> Path | None:
     """Walk up from *start* to find a shaapi project (backend/ + pyproject.toml)."""
     p = Path(start).resolve()
     for cand in [p, *p.parents]:
         if (cand / "backend").is_dir() and (cand / "pyproject.toml").is_file():
             return cand
     return None
+
+
+# Backwards-compatible private alias.
+_find_project_root = find_project_root
 
 
 def add_plugin(name: str, project_dir: Path | str = ".") -> dict:

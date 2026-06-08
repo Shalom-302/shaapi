@@ -4,7 +4,7 @@ set -e
 cd backend
 
 # Apply database migrations (idempotent: no-op if already up to date).
-# Migrations are authored explicitly with `shaapi makemigrations`, never
+# Migrations are authored explicitly with `{{cli}} db generate`, never
 # auto-generated at boot.
 alembic upgrade head
 
