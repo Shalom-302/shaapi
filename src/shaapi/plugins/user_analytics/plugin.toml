@@ -1,0 +1,10 @@
+[plugin]
+name = "user_analytics"
+summary = "Track user/product events and query aggregated usage stats."
+version = "0.1.0"
+
+[dependencies]
+packages = []
+
+[post_add]
+message = "Analytics endpoints are under /admin/api/v1/analytics (JWT-protected): POST /events to record, GET /events to list, GET /stats for counts by event type. Record from code: `from backend.plugins.user_analytics.service import analytics_service; await analytics_service.record(event_type='page.view', ...)`. Dev auto-creates the table; production: ./docker-run.sh makemigrations \"add analytics\""
