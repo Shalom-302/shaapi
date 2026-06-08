@@ -176,7 +176,8 @@ class Settings(BaseSettings):
         ('GET', f'{FASTAPI_API_V1_PATH}/auth/captcha'),
     }
 
-    # IP location
+    # IP location. 'offline' needs ip2region.xdb in backend/static/ (~11MB, not
+    # shipped): download from https://github.com/lionsoul2014/ip2region
     IP_LOCATION_PARSE: Literal['online', 'offline', 'false'] = 'online'
     IP_LOCATION_REDIS_PREFIX: str = 'shaapi:ip:location'
     IP_LOCATION_EXPIRE_SECONDS: int = 60 * 60 * 24 * 1

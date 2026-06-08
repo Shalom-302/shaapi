@@ -1,5 +1,7 @@
+import json
+import os
+
 import httpx
-import json 
 
 from asgiref.sync import sync_to_async
 from fastapi import Request
@@ -58,6 +60,14 @@ def get_location_offline(ip: str) -> dict | None:
     :return:
     """
     try:
+        if not os.path.exists(IP2REGION_XDB):
+            log.warning(
+                "Offline IP database not found at %s. Download ip2region.xdb "
+                "(https://github.com/lionsoul2014/ip2region) and place it there, "
+                "or keep IP_LOCATION_PARSE=online (the default).",
+                IP2REGION_XDB,
+            )
+            return None
         cb = XdbSearcher.loadContentFromFile(dbfile=IP2REGION_XDB)
         searcher = XdbSearcher(contentBuff=cb)
         data = searcher.search(ip)
