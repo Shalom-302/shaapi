@@ -32,7 +32,22 @@ from backend.common.model import MappedBase
 
 # if add new app, do like this
 from backend.models import *  # noqa: F401
-from backend.models import *  # noqa: F401
+
+# Register models from installed plugins (added via `shaapi add <name>`) so
+# autogenerate sees their tables. No-op when there are no plugins.
+try:
+    import importlib
+    import pkgutil
+
+    import backend.plugins as _plugins_pkg
+
+    for _m in pkgutil.iter_modules(_plugins_pkg.__path__):
+        try:
+            importlib.import_module(f"backend.plugins.{_m.name}.models")
+        except Exception:  # noqa: BLE001
+            pass
+except ModuleNotFoundError:
+    pass
 
 target_metadata = MappedBase.metadata
 

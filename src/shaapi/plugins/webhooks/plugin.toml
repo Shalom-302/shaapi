@@ -1,0 +1,12 @@
+[plugin]
+name = "webhooks"
+summary = "Register webhook subscriptions and emit HMAC-signed events to external URLs."
+version = "0.1.0"
+
+[dependencies]
+# Extra Python packages to add to the project's pyproject.toml.
+# (httpx already ships with fastapi[standard], so nothing extra is needed.)
+packages = []
+
+[post_add]
+message = "Webhooks endpoints are now under /admin/api/v1/webhooks (JWT-protected). In dev they work right away (tables auto-create); for production run: ./docker-run.sh makemigrations \"add webhooks\""

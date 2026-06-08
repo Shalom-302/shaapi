@@ -9,9 +9,11 @@ from __future__ import annotations
 import re
 import shutil
 import subprocess
+import tomllib
 from pathlib import Path
 
 TEMPLATE_DIR = Path(__file__).resolve().parent / "template"
+PLUGINS_DIR = Path(__file__).resolve().parent / "plugins"
 
 # Path components never copied into a generated project.
 _EXCLUDE_NAMES = {
@@ -111,4 +113,94 @@ def create_project(
         except (subprocess.CalledProcessError, FileNotFoundError, OSError):
             pass  # git is optional; never fail project creation over it
 
+    return dest
+
+
+# --------------------------------------------------------------------------- #
+# Plugins
+# --------------------------------------------------------------------------- #
+
+def list_plugins() -> list[dict]:
+    """Return the catalog of plugins bundled with shaapi."""
+    out: list[dict] = []
+    if not PLUGINS_DIR.is_dir():
+        return out
+    for d in sorted(PLUGINS_DIR.iterdir()):
+        manifest = d / "plugin.toml"
+        if not manifest.is_file():
+            continue
+        meta = tomllib.loads(manifest.read_text(encoding="utf-8")).get("plugin", {})
+        out.append(
+            {
+                "name": meta.get("name", d.name),
+                "summary": meta.get("summary", ""),
+                "version": meta.get("version", ""),
+            }
+        )
+    return out
+
+
+def _find_project_root(start: Path | str) -> Path | None:
+    """Walk up from *start* to find a shaapi project (backend/ + pyproject.toml)."""
+    p = Path(start).resolve()
+    for cand in [p, *p.parents]:
+        if (cand / "backend").is_dir() and (cand / "pyproject.toml").is_file():
+            return cand
+    return None
+
+
+def add_plugin(name: str, project_dir: Path | str = ".") -> dict:
+    """Copy a catalog plugin into a project's backend/plugins/<name>/."""
+    src = PLUGINS_DIR / name
+    manifest = src / "plugin.toml"
+    if not manifest.is_file():
+        raise ValueError(f"Unknown plugin '{name}'. Run `shaapi list-plugins`.")
+
+    root = _find_project_root(project_dir)
+    if root is None:
+        raise RuntimeError(
+            "Not inside a shaapi project (no backend/ + pyproject.toml found). "
+            "cd into your project first."
+        )
+
+    dest = root / "backend" / "plugins" / name
+    if dest.exists():
+        raise FileExistsError(f"Plugin '{name}' is already installed at {dest}")
+
+    # Ensure backend/plugins is a package.
+    plugins_pkg = root / "backend" / "plugins"
+    plugins_pkg.mkdir(parents=True, exist_ok=True)
+    init = plugins_pkg / "__init__.py"
+    if not init.exists():
+        init.write_text("", encoding="utf-8", newline="\n")
+
+    files_dir = src / "files"
+    for f in files_dir.rglob("*"):
+        if f.is_dir():
+            continue
+        target = dest / f.relative_to(files_dir)
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if f.suffix in _BINARY_SUFFIXES:
+            shutil.copy2(f, target)
+        else:
+            target.write_text(f.read_text(encoding="utf-8"), encoding="utf-8", newline="\n")
+
+    meta = tomllib.loads(manifest.read_text(encoding="utf-8"))
+    return {
+        "name": name,
+        "dest": dest,
+        "packages": meta.get("dependencies", {}).get("packages", []),
+        "message": meta.get("post_add", {}).get("message", ""),
+    }
+
+
+def remove_plugin(name: str, project_dir: Path | str = ".") -> Path:
+    """Remove an installed plugin from a project."""
+    root = _find_project_root(project_dir)
+    if root is None:
+        raise RuntimeError("Not inside a shaapi project.")
+    dest = root / "backend" / "plugins" / name
+    if not dest.exists():
+        raise FileNotFoundError(f"Plugin '{name}' is not installed.")
+    shutil.rmtree(dest)
     return dest

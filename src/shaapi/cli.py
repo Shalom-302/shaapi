@@ -8,9 +8,16 @@ from typing import Optional
 import typer
 from rich.console import Console
 from rich.panel import Panel
+from rich.table import Table
 
 from shaapi import __version__
-from shaapi.generator import create_project, slugify
+from shaapi.generator import (
+    add_plugin,
+    create_project,
+    list_plugins,
+    remove_plugin,
+    slugify,
+)
 
 # Make output robust on Windows consoles (cp1252) and when piped.
 for _stream in (sys.stdout, sys.stderr):
@@ -69,6 +76,62 @@ def create_project_command(
             border_style="cyan",
         )
     )
+
+
+@app.command("list-plugins")
+def list_plugins_command() -> None:
+    """List the plugins you can add to a project."""
+    plugins = list_plugins()
+    if not plugins:
+        console.print("No plugins available.")
+        return
+    table = Table(title="shaapi plugins", title_style="bold cyan")
+    table.add_column("Name", style="bold")
+    table.add_column("Version")
+    table.add_column("Description")
+    for p in plugins:
+        table.add_row(p["name"], p["version"], p["summary"])
+    console.print(table)
+    console.print("\nAdd one with: [bold]shaapi add <name>[/]")
+
+
+@app.command("add")
+def add_command(
+    name: str = typer.Argument(..., help="Plugin name (see `shaapi list-plugins`)."),
+    path: Path = typer.Option(Path("."), "--path", "-p", help="Project directory."),
+) -> None:
+    """Add a plugin to the current project (copies it into backend/plugins/)."""
+    try:
+        res = add_plugin(name, path)
+    except (FileExistsError, ValueError, RuntimeError) as exc:
+        console.print(f"[bold red]Error:[/] {exc}")
+        raise typer.Exit(code=1)
+
+    lines = [f"[green][OK][/] Added plugin [bold]{name}[/] -> {res['dest']}"]
+    if res["packages"]:
+        deps = " ".join(res["packages"])
+        lines.append(
+            f"\n[yellow]This plugin needs extra dependencies:[/] {deps}\n"
+            f"Add them to pyproject.toml, then run [bold]uv lock[/]."
+        )
+    if res["message"]:
+        lines.append(f"\n{res['message']}")
+    lines.append("\nRestart the API to load it: [bold]./docker-run.sh restart-api[/]")
+    console.print(Panel.fit("\n".join(lines), title="shaapi add", border_style="cyan"))
+
+
+@app.command("remove")
+def remove_command(
+    name: str = typer.Argument(..., help="Installed plugin name."),
+    path: Path = typer.Option(Path("."), "--path", "-p", help="Project directory."),
+) -> None:
+    """Remove a plugin from the current project."""
+    try:
+        dest = remove_plugin(name, path)
+    except (FileNotFoundError, RuntimeError) as exc:
+        console.print(f"[bold red]Error:[/] {exc}")
+        raise typer.Exit(code=1)
+    console.print(f"[green][OK][/] Removed plugin [bold]{name}[/] ({dest})")
 
 
 def _version_callback(value: bool) -> None:

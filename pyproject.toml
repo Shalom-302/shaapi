@@ -1,6 +1,6 @@
 [project]
 name = "shaapi"
-version = "0.1.3"
+version = "0.2.0"
 description = "Scaffold lean, batteries-included FastAPI backends — like django-admin, for FastAPI."
 readme = "README.md"
 requires-python = ">=3.11"
