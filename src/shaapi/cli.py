@@ -24,7 +24,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-from shaapi import __version__, docker_ops, ops
+from shaapi import __version__, docker_ops, ops, sec
 from shaapi.generator import (
     add_plugin,
     create_project,
@@ -52,10 +52,15 @@ ops_app = typer.Typer(
     no_args_is_help=True,
     help="Production tooling (shaops): hardened config & deploy scripts.",
 )
+sec_app = typer.Typer(
+    no_args_is_help=True,
+    help="Security testing (shasec): audit & attack a shaapi API.",
+)
 app.add_typer(db_app, name="db")
 app.add_typer(auth_app, name="auth")
 app.add_typer(storage_app, name="storage")
 app.add_typer(ops_app, name="ops")
+app.add_typer(sec_app, name="sec")
 console = Console()
 
 _PATH_OPTION = typer.Option(Path("."), "--path", "-p", help="Project directory.")
@@ -294,6 +299,81 @@ def ops_secrets(
 def ops_checklist() -> None:
     """Print the production go-live checklist."""
     console.print(ops.CHECKLIST)
+
+
+# --------------------------------------------------------------------------- #
+# sec  (shasec — security testing: audit & attack a shaapi API)
+# --------------------------------------------------------------------------- #
+
+_SEV_STYLE = {
+    "CRITICAL": "bold red", "HIGH": "red", "MEDIUM": "yellow",
+    "LOW": "cyan", "INFO": "dim", "PASS": "green",
+}
+
+
+def _report(title: str, findings: list) -> int:
+    """Render findings as a table; return a CI exit code (1 if any >= HIGH)."""
+    table = Table(title=title, title_style="bold cyan")
+    table.add_column("Severity", no_wrap=True)
+    table.add_column("Finding")
+    table.add_column("Fix")
+    for f in sorted(findings, key=lambda x: -x.rank):
+        detail = f"\n[dim]{f.detail}[/]" if f.detail else ""
+        style = _SEV_STYLE.get(f.severity, "")
+        table.add_row(f"[{style}]{f.severity}[/]", f"{f.title}{detail}", f.remediation or "")
+    console.print(table)
+    worst = max((f.rank for f in findings), default=0)
+    n_fail = sum(1 for f in findings if f.rank >= sec.FAIL_AT)
+    if n_fail:
+        console.print(f"\n[bold red]{n_fail} finding(s) at or above HIGH — failing.[/]")
+    else:
+        console.print("\n[green]No HIGH/CRITICAL findings.[/]")
+    return 1 if worst >= sec.FAIL_AT else 0
+
+
+@sec_app.command("audit")
+def sec_audit(path: Path = _PATH_OPTION) -> None:
+    """Static audit of the project's config & code for known weaknesses."""
+    try:
+        findings = sec.audit_project(path)
+    except sec.SecError as exc:
+        console.print(f"[bold red]Error:[/] {exc}")
+        raise typer.Exit(code=1)
+    raise typer.Exit(_report("shaapi sec audit", findings))
+
+
+@sec_app.command("auth")
+def sec_auth(
+    url: str = typer.Argument(..., help="API base URL, e.g. http://localhost:8000/admin/api/v1"),
+) -> None:
+    """Black-box authentication probes against a running API."""
+    try:
+        findings = sec.audit_auth(url)
+    except sec.SecError as exc:
+        console.print(f"[bold red]Error:[/] {exc}")
+        raise typer.Exit(code=1)
+    raise typer.Exit(_report(f"shaapi sec auth  {url}", findings))
+
+
+@sec_app.command("scan")
+def sec_scan(
+    url: str = typer.Argument(..., help="API base URL, e.g. http://localhost:8000/admin/api/v1"),
+) -> None:
+    """Scan security headers and the exposed OpenAPI surface."""
+    try:
+        findings = sec.scan_api(url)
+    except sec.SecError as exc:
+        console.print(f"[bold red]Error:[/] {exc}")
+        raise typer.Exit(code=1)
+    raise typer.Exit(_report(f"shaapi sec scan  {url}", findings))
+
+
+@sec_app.command("ports")
+def sec_ports(
+    host: str = typer.Argument("localhost", help="Host to probe (default: localhost)."),
+) -> None:
+    """Check whether the stack's datastore ports are reachable on a host."""
+    raise typer.Exit(_report(f"shaapi sec ports  {host}", sec.scan_ports(host)))
 
 
 # --------------------------------------------------------------------------- #
