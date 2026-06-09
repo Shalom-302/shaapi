@@ -49,10 +49,18 @@ ENV PATH="/opt/venv/bin:$PATH" \
     PYTHONDONTWRITEBYTECODE=1 \
     LANG=C.UTF-8
 
+# Run as a non-root user (least privilege: limits the blast radius of an RCE).
+RUN groupadd --system app && useradd --system --gid app --no-create-home app
+
 # Application source
 COPY . .
 
-RUN chmod +x ./backend/entrypoint-api.sh
+# Make the entrypoint executable and hand ownership of the app + venv to the
+# non-root user (so it can write the log/ dir, byte-compile, etc.).
+RUN chmod +x ./backend/entrypoint-api.sh \
+    && chown -R app:app /app /opt/venv
+
+USER app
 
 EXPOSE 8000
 

@@ -156,7 +156,10 @@ def db_generate(
 def db_apply(path: Path = _PATH_OPTION) -> None:
     """Apply pending migrations (alembic upgrade head)."""
     _docker(docker_ops.apply_migrations, path)
-    console.print("[green][OK][/] Migrations applied.")
+    console.print(
+        "[green][OK][/] Migrations applied.\n"
+        "[dim]No admin yet? Create one to log into Swagger:[/] [bold]shaapi auth init[/]"
+    )
 
 
 @db_app.command("preview")

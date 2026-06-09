@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Request, Response
+from fastapi import APIRouter, Depends, Request, Response
+from fastapi_limiter.depends import RateLimiter
 from starlette.background import BackgroundTasks
 
 from backend.app.admin.schema.user import (
@@ -15,7 +16,11 @@ from backend.common.security.jwt import DependsJwtAuth
 router = APIRouter(prefix="/auth", tags=["User Auth"])
 
 
-@router.post('/register', summary='registered user')
+@router.post(
+    '/register',
+    summary='registered user',
+    dependencies=[Depends(RateLimiter(times=5, minutes=60))],  # curb mass sign-up
+)
 async def register_user(request: Request, response: Response, obj: UserRegister, background_tasks: BackgroundTasks) -> ResponseModel:
     data = await auth_service.register(request=request, response=response, obj=obj, background_tasks=background_tasks)
     
@@ -26,7 +31,7 @@ async def register_user(request: Request, response: Response, obj: UserRegister,
     '/login',
     summary='user login',
     description='json format, only supports debugging in third-party api tools, e.g. postman.',
-    # dependencies=[Depends(RateLimiter(times=5, minutes=1))],
+    dependencies=[Depends(RateLimiter(times=5, minutes=1))],  # brute-force guard
 )
 async def user_login(
     request: Request, response: Response, obj: UserLoginSchema, background_tasks: BackgroundTasks

@@ -45,8 +45,8 @@ release:
   stage: release
   script:
     - apk add --update nodejs git npm
-    - git config --global user.email "admin@kaanari.com"
-    - git config --global user.name "nicolas"
+    - git config --global user.email "ci@example.com"
+    - git config --global user.name "ci"
     - git tag -d v0.1.1 || true
     - git push --delete origin v0.1.1 || true
     - mkdir -p ~/.ssh

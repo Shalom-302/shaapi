@@ -85,8 +85,15 @@ def setup_logging():
 
 def set_customize_logfile():
     log_path = path_conf.LOG_DIR
-    if not os.path.exists(log_path):
-        os.mkdir(log_path)
+    # File logging is a convenience on top of stdout/stderr (which is what
+    # `{{cli}} logs` reads). If the directory can't be created or written — e.g.
+    # a read-only/non-root container filesystem — degrade gracefully to
+    # console-only logging instead of crashing the whole app on startup.
+    try:
+        os.makedirs(log_path, exist_ok=True)
+    except OSError as exc:
+        logger.warning(f'File logging disabled (cannot use {log_path!r}): {exc}')
+        return
 
     # log files
     log_stdout_file = os.path.join(log_path, settings.LOG_STDOUT_FILENAME)

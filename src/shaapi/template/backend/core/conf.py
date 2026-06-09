@@ -2,6 +2,7 @@ from functools import lru_cache
 import os
 from typing import Literal
 
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from backend.core.path_conf import ApiV2Path
@@ -128,6 +129,12 @@ class Settings(BaseSettings):
     # Cookies
     COOKIE_REFRESH_TOKEN_KEY: str = 'shaapi_refresh_token'
     COOKIE_REFRESH_TOKEN_EXPIRE_SECONDS: int = TOKEN_REFRESH_EXPIRE_SECONDS
+    # Secure cookie flags. 'lax' works for a same-site front/back (e.g.
+    # localhost:3000 -> localhost:8000); use 'none' + secure for cross-domain.
+    # COOKIE_SECURE is forced on outside dev (see auth_service), so the refresh
+    # token is never sent over plain HTTP in production.
+    COOKIE_SECURE: bool = False
+    COOKIE_SAMESITE: Literal['lax', 'strict', 'none'] = 'lax'
 
     # Log
     LOG_ROOT_LEVEL: str = 'NOTSET'
@@ -176,9 +183,11 @@ class Settings(BaseSettings):
         ('GET', f'{FASTAPI_API_V1_PATH}/auth/captcha'),
     }
 
-    # IP location. 'offline' needs ip2region.xdb in backend/static/ (~11MB, not
+    # IP geolocation of requests. Default 'false' (no external call). 'online'
+    # sends each client IP to ip-api.com over HTTP (privacy + latency — opt in
+    # explicitly). 'offline' needs ip2region.xdb in backend/static/ (~11MB, not
     # shipped): download from https://github.com/lionsoul2014/ip2region
-    IP_LOCATION_PARSE: Literal['online', 'offline', 'false'] = 'online'
+    IP_LOCATION_PARSE: Literal['online', 'offline', 'false'] = 'false'
     IP_LOCATION_REDIS_PREFIX: str = 'shaapi:ip:location'
     IP_LOCATION_EXPIRE_SECONDS: int = 60 * 60 * 24 * 1
 
@@ -197,6 +206,45 @@ class Settings(BaseSettings):
         'new_password',
         'confirm_password',
     ]
+
+    @model_validator(mode='after')
+    def _enforce_production_safety(self) -> 'Settings':
+        """Refuse to boot in a non-dev environment with insecure defaults.
+
+        In ``dev`` everything boots out of the box for a zero-friction first
+        run. In ``preprod``/``prod``, leaving a development secret or a default
+        infra credential in place is a critical vulnerability (forgeable JWTs,
+        world-readable storage), so fail fast with an actionable message instead
+        of starting a compromised server.
+        """
+        if self.ENVIRONMENT == 'dev':
+            return self
+
+        insecure: list[str] = []
+        if self.TOKEN_SECRET_KEY == 'dev-insecure-change-me-token-secret-key':
+            insecure.append(
+                'TOKEN_SECRET_KEY  '
+                '(generate: python -c "import secrets; print(secrets.token_urlsafe(32))")'
+            )
+        if self.OPERA_LOG_ENCRYPT_SECRET_KEY == 'dev-insecure-change-me-opera-log-key':
+            insecure.append(
+                'OPERA_LOG_ENCRYPT_SECRET_KEY  '
+                '(generate: python -c "import os; print(os.urandom(32).hex())")'
+            )
+        if self.POSTGRES_PASSWORD == 'postgres':
+            insecure.append('POSTGRES_PASSWORD  (still the default "postgres")')
+        if self.MINIO_SECRET_KEY == 'minioadmin':
+            insecure.append('MINIO_SECRET_KEY  (still the default "minioadmin")')
+
+        if insecure:
+            raise ValueError(
+                f'ENVIRONMENT={self.ENVIRONMENT!r} but insecure development defaults '
+                'are still in use:\n'
+                + '\n'.join(f'  - {item}' for item in insecure)
+                + '\nSet real values in your .env before deploying. '
+                '(This check only runs outside dev.)'
+            )
+        return self
 
 
 @lru_cache

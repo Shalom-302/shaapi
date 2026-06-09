@@ -2,7 +2,7 @@
 name = "shaapi"
 version = "0.1.0"
 description = "A lean, batteries-included FastAPI backend boilerplate."
-authors = [{ name = "Shalom", email = "team@kaanari.com" }]
+authors = [{ name = "Your Name", email = "you@example.com" }]
 license = { text = "MIT" }
 readme = "README.md"
 requires-python = ">=3.11"

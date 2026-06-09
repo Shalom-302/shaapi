@@ -86,7 +86,8 @@ class AuthService:
                 max_age=settings.COOKIE_REFRESH_TOKEN_EXPIRE_SECONDS,
                 expires=timezone.f_utc(refresh_token.refresh_token_expire_time),
                 httponly=True,
-                samesite='none'
+                samesite=settings.COOKIE_SAMESITE,
+                secure=settings.COOKIE_SECURE or settings.ENVIRONMENT != 'dev',
             )
             
             data = GetLoginToken(
@@ -203,7 +204,8 @@ class AuthService:
                 max_age=settings.COOKIE_REFRESH_TOKEN_EXPIRE_SECONDS,
                 expires=timezone.f_utc(new_token.new_refresh_token_expire_time),
                 httponly=True,
-                samesite='none'
+                samesite=settings.COOKIE_SAMESITE,
+                secure=settings.COOKIE_SECURE or settings.ENVIRONMENT != 'dev',
             )
             data = GetNewToken(
                 access_token=new_token.new_access_token,
