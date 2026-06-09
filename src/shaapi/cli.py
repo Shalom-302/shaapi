@@ -399,9 +399,15 @@ def up_command(
 def down_command(
     path: Path = _PATH_OPTION,
     monitoring: bool = typer.Option(False, "--monitoring", help="Also stop the monitoring stack."),
+    volumes: bool = typer.Option(
+        False,
+        "--volumes",
+        "-v",
+        help="Also remove named volumes (postgres/redis/minio). Wipes all data — lets migrations re-run from scratch.",
+    ),
 ) -> None:
     """Stop and remove the stack's containers."""
-    _docker(docker_ops.down, path, monitoring=monitoring)
+    _docker(docker_ops.down, path, monitoring=monitoring, volumes=volumes)
 
 
 @app.command("logs")

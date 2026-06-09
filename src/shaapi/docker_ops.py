@@ -158,8 +158,8 @@ def up(path: Path | str = ".", *, monitoring: bool = False, prod: bool = False) 
     _run(["up", "-d", "--build"], path, monitoring=monitoring, prod=prod)
 
 
-def down(path: Path | str = ".", *, monitoring: bool = False) -> None:
-    _run(["down"], path, monitoring=monitoring)
+def down(path: Path | str = ".", *, monitoring: bool = False, volumes: bool = False) -> None:
+    _run(["down"] + (["-v"] if volumes else []), path, monitoring=monitoring)
 
 
 def logs(path: Path | str = ".", *, service: str | None = None) -> None:
