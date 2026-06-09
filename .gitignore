@@ -172,3 +172,6 @@ changelog.config.js
 # MkDocs build output
 site/
 .cache/
+
+# Private — internal course / research material (not for release, kept private)
+/formation/
