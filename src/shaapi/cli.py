@@ -24,7 +24,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-from shaapi import __version__, docker_ops
+from shaapi import __version__, docker_ops, ops
 from shaapi.generator import (
     add_plugin,
     create_project,
@@ -48,9 +48,14 @@ app = typer.Typer(
 db_app = typer.Typer(no_args_is_help=True, help="Database & migrations (Alembic).")
 auth_app = typer.Typer(no_args_is_help=True, help="Authentication bootstrap.")
 storage_app = typer.Typer(no_args_is_help=True, help="Object storage (MinIO / S3).")
+ops_app = typer.Typer(
+    no_args_is_help=True,
+    help="Production tooling (shaops): hardened config & deploy scripts.",
+)
 app.add_typer(db_app, name="db")
 app.add_typer(auth_app, name="auth")
 app.add_typer(storage_app, name="storage")
+app.add_typer(ops_app, name="ops")
 console = Console()
 
 _PATH_OPTION = typer.Option(Path("."), "--path", "-p", help="Project directory.")
@@ -75,6 +80,7 @@ def _create_project(
     monitoring: Optional[bool],
     git: Optional[bool],
     yes: bool,
+    prod: bool = False,
 ) -> None:
     slug = slugify(name)
     console.print(f"\n[bold cyan]shaapi[/] creating project [bold]{slug}[/]\n")
@@ -84,18 +90,35 @@ def _create_project(
             False if yes
             else typer.confirm("Include monitoring (Prometheus/Grafana/Tempo/Loki)?", default=False)
         )
-    if git is None:
+    # --prod forces a git repo (it creates the dev/prod branches); otherwise ask.
+    if not prod and git is None:
         git = True if yes else typer.confirm("Initialize a git repository?", default=True)
 
     try:
-        dest = create_project(name, path, monitoring=monitoring, git_init=git)
+        dest = create_project(
+            name, path, monitoring=monitoring, git_init=bool(git), prod=prod
+        )
     except (FileExistsError, ValueError, RuntimeError) as exc:
         console.print(f"[bold red]Error:[/] {exc}")
         raise typer.Exit(code=1)
 
     up_cmd = "shaapi up" + (" --monitoring" if monitoring else "")
-    console.print(
-        Panel.fit(
+    if prod:
+        body = (
+            f"[green][OK][/] Project created at [bold]{dest}[/]\n"
+            f"[dim]git:[/] branch [bold]dev[/] (you are here) + branch [bold]prod[/] "
+            f"(production config)\n\n"
+            f"[bold]Develop[/]\n"
+            f"  cd {dest.name}\n"
+            f"  {up_cmd}              # build + start the dev stack\n"
+            f"  shaapi db apply       # run migrations\n"
+            f"  shaapi auth init      # create an admin to log into Swagger\n\n"
+            f"[bold]Ship to a VPS[/] (production config lives on the prod branch)\n"
+            f"  git checkout prod\n"
+            f"  shaapi ops checklist  # full go-live steps"
+        )
+    else:
+        body = (
             f"[green][OK][/] Project created at [bold]{dest}[/]\n\n"
             f"[bold]Next steps[/]\n"
             f"  cd {dest.name}\n"
@@ -103,11 +126,9 @@ def _create_project(
             f"  shaapi db apply       # run migrations\n"
             f"  shaapi auth init      # create an admin to log into Swagger\n\n"
             f"Then open [cyan]http://localhost:8000/admin/api/v1/docs[/]\n"
-            f"[dim](On Unix you can also use ./docker-run.sh instead of shaapi.)[/]",
-            title="Done",
-            border_style="cyan",
+            f"[dim](Need production config later? Run `shaapi ops harden`.)[/]"
         )
-    )
+    console.print(Panel.fit(body, title="Done", border_style="cyan"))
 
 
 @app.command("new")
@@ -120,10 +141,14 @@ def new_command(
     git: Optional[bool] = typer.Option(
         None, "--git/--no-git", help="Initialize a git repository."
     ),
+    prod: bool = typer.Option(
+        False, "--prod",
+        help="Also scaffold production config on a separate `prod` git branch.",
+    ),
     yes: bool = typer.Option(False, "--yes", "-y", help="Accept defaults, skip prompts."),
 ) -> None:
     """Create a new shaapi project."""
-    _create_project(name, path, monitoring, git, yes)
+    _create_project(name, path, monitoring, git, yes, prod=prod)
 
 
 @app.command("create-project", hidden=True)
@@ -132,10 +157,11 @@ def create_project_alias(
     path: Path = typer.Option(Path("."), "--path", "-p"),
     monitoring: Optional[bool] = typer.Option(None, "--monitoring/--no-monitoring"),
     git: Optional[bool] = typer.Option(None, "--git/--no-git"),
+    prod: bool = typer.Option(False, "--prod"),
     yes: bool = typer.Option(False, "--yes", "-y"),
 ) -> None:
     """Deprecated alias for `shaapi new`."""
-    _create_project(name, path, monitoring, git, yes)
+    _create_project(name, path, monitoring, git, yes, prod=prod)
 
 
 # --------------------------------------------------------------------------- #
@@ -216,6 +242,58 @@ def storage_init(path: Path = _PATH_OPTION) -> None:
     """Ensure the configured object-storage bucket exists."""
     _docker(docker_ops.storage_init, path)
     console.print("[green][OK][/] Object storage ready.")
+
+
+# --------------------------------------------------------------------------- #
+# ops  (shaops — production tooling: generate hardened config & deploy scripts)
+# --------------------------------------------------------------------------- #
+
+@ops_app.command("harden")
+def ops_harden(path: Path = _PATH_OPTION) -> None:
+    """Generate production config: docker-compose.prod.yml, .env.prod.example, deploy/."""
+    try:
+        written = ops.harden(path)
+    except ops.OpsError as exc:
+        console.print(f"[bold red]Error:[/] {exc}")
+        raise typer.Exit(code=1)
+    files = "\n".join(f"  + {p}" for p in written)
+    console.print(
+        Panel.fit(
+            f"[green][OK][/] Production config written:\n{files}\n\n"
+            f"[bold]Next[/]\n"
+            f"  shaapi ops secrets --write   # generate + inject real secrets into .env\n"
+            f"  shaapi up --prod             # run the hardened stack (datastores not exposed)\n"
+            f"  shaapi ops checklist         # full go-live steps",
+            title="shaapi ops harden",
+            border_style="cyan",
+        )
+    )
+
+
+@ops_app.command("secrets")
+def ops_secrets(
+    path: Path = _PATH_OPTION,
+    write: bool = typer.Option(False, "--write", help="Inject the secrets into the project's .env."),
+) -> None:
+    """Generate strong production secrets (print them, or --write into .env)."""
+    secrets = ops.generate_secrets()
+    if not write:
+        for key, value in secrets.items():
+            console.print(f"{key}={value}")
+        console.print("\n[dim]Add --write to inject these into your .env.[/]")
+        return
+    try:
+        target = ops.write_secrets_to_env(path, secrets)
+    except ops.OpsError as exc:
+        console.print(f"[bold red]Error:[/] {exc}")
+        raise typer.Exit(code=1)
+    console.print(f"[green][OK][/] Wrote {len(secrets)} secrets into [bold]{target}[/].")
+
+
+@ops_app.command("checklist")
+def ops_checklist() -> None:
+    """Print the production go-live checklist."""
+    console.print(ops.CHECKLIST)
 
 
 # --------------------------------------------------------------------------- #

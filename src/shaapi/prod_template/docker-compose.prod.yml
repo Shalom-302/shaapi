@@ -1,0 +1,52 @@
+# Production overlay — apply ON TOP OF the base file:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# or simply:  {{cli}} up --prod
+#
+# How it hardens the stack vs. development:
+#   - the datastores (Postgres / Redis / MinIO) publish NO host ports — they are
+#     reachable only on the internal Docker network. The dev port mappings live
+#     in docker-compose.override.yml, which is NOT loaded with --prod, so
+#     5432 / 9000 / 9001 are never exposed to the outside world in production.
+#   - ENVIRONMENT=prod is enforced, so the app refuses to boot while any secret
+#     is still a development default (see backend/core/conf.py).
+#   - a daily Postgres backup sidecar is added.
+#
+# Real secrets live in `.env` on the server (gitignored, never committed).
+# Generate them with:  {{cli}} ops secrets --write
+services:
+  api:
+    environment:
+      - ENVIRONMENT=prod
+    restart: always
+
+  postgres:
+    restart: always
+
+  redis:
+    restart: always
+
+  minio:
+    restart: always
+
+  # Daily logical backups with rotation (7 daily / 4 weekly / 6 monthly).
+  postgres-backup:
+    image: prodrigestivill/postgres-backup-local
+    container_name: shaapi_postgres_backup
+    restart: always
+    environment:
+      - POSTGRES_HOST=shaapi_postgres
+      - POSTGRES_DB=${POSTGRES_DATABASE:-shaapi}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_EXTRA_OPTS=--schema=public --blobs
+      - SCHEDULE=@daily
+      - BACKUP_KEEP_DAYS=7
+      - BACKUP_KEEP_WEEKS=4
+      - BACKUP_KEEP_MONTHS=6
+    volumes:
+      - ./postgres_backups:/backups
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - shaapi
