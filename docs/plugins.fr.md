@@ -24,7 +24,7 @@ ajout, rechargez l'API (`shaapi restart api`) ou rebuildez.
 En développement, les tables du plugin se créent automatiquement au démarrage.
 En production, générez une migration : `shaapi db generate --message "add <plugin>"`.
 
-## Plugins disponibles (v0.3.0)
+## Plugins disponibles (v0.3.1)
 
 | Plugin | Rôle | Endpoints (sous `/admin/api/v1`) |
 |---|---|---|

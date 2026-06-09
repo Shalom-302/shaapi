@@ -81,7 +81,7 @@ def upgrade() -> None:
     sa.Column('x_id', sa.String(length=32), nullable=False),
     sa.Column('name', sa.String(), nullable=False, comment='role name'),
     sa.Column('status', sa.Integer(), nullable=False, comment='Role status (0 deactivated 1 normal)'),
-    sa.Column('remark', sa.Text(), nullable=False, comment='note'),
+    sa.Column('remark', sa.Text(), nullable=True, comment='note'),
     sa.Column('created_time', sa.DateTime(timezone=True), nullable=False, comment='Creation time'),
     sa.Column('updated_time', sa.DateTime(timezone=True), nullable=True, comment='update time'),
     sa.PrimaryKeyConstraint('id'),
