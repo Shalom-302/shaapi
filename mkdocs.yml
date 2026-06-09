@@ -75,6 +75,8 @@ plugins:
             Architecture: Architecture
             Build a feature: Créer une fonctionnalité
             Plugins: Plugins
+            Production (shaops): Production (shaops)
+            Security (shasec): Sécurité (shasec)
             Why Docker?: Pourquoi Docker ?
             Deployment: Déploiement
 
@@ -86,5 +88,7 @@ nav:
   - Architecture: architecture.md
   - Build a feature: create-a-feature.md
   - Plugins: plugins.md
+  - Production (shaops): production.md
+  - Security (shasec): security.md
   - Why Docker?: why-docker.md
   - Deployment: deployment.md

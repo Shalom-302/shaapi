@@ -37,6 +37,7 @@ Create a new project.
 ```bash
 shaapi new "my api"
 shaapi new "my api" -y                      # accept defaults, no prompts
+shaapi new "my api" --prod                  # + production config on a `prod` git branch
 shaapi new "my api" --monitoring --no-git
 shaapi new "my api" --path ./projects
 ```
@@ -44,6 +45,7 @@ shaapi new "my api" --path ./projects
 | Option | Description |
 | --- | --- |
 | `--path, -p` | Where to create the project (default `.`). |
+| `--prod` | Also scaffold production config on a separate `prod` git branch (same code, config-only divergence). |
 | `--monitoring / --no-monitoring` | Include the Prometheus/Grafana/Tempo/Loki stack. |
 | `--git / --no-git` | Initialize a git repository. |
 | `--yes, -y` | Accept defaults, skip the interactive prompts. |
@@ -66,13 +68,13 @@ bind-mounts the source for hot-reload.
 ```bash
 shaapi up
 shaapi up --monitoring     # + Prometheus/Grafana/Tempo/Loki
-shaapi up --prod           # production: no bind-mount, serve the baked image
+shaapi up --prod           # production: loads docker-compose.prod.yml (datastores not exposed)
 ```
 
 | Option | Description |
 | --- | --- |
 | `--monitoring` | Add the observability stack (requires a project generated with monitoring). |
-| `--prod` | Production mode — no dev bind-mount. |
+| `--prod` | Production mode — loads `docker-compose.prod.yml` (datastores publish no host ports), no dev bind-mount. |
 | `--path, -p` | Project directory. |
 
 ### `shaapi down`
@@ -185,6 +187,74 @@ Ensure the configured object-storage bucket (MinIO / S3) exists.
 
 ```bash
 shaapi storage init
+```
+
+---
+
+## Production (`ops`)
+
+**shaops** generates hardened production artifacts — all files you run yourself
+on the server (it never connects out).
+
+### `shaapi ops harden`
+
+Write `docker-compose.prod.yml` (datastores publish no host ports,
+`ENVIRONMENT=prod`, a daily Postgres backup sidecar), `.env.prod.example`, and
+`deploy/` scripts (`provision.sh`: install Docker; `harden-os.sh`: ufw + a port
+exposure check).
+
+### `shaapi ops secrets`
+
+Generate strong secrets. `--write` injects them into the project's `.env`.
+
+```bash
+shaapi ops secrets            # print them
+shaapi ops secrets --write    # inject into .env
+```
+
+### `shaapi ops checklist`
+
+Print the production go-live checklist.
+
+!!! tip "Two-branch workflow"
+    `shaapi new "my api" --prod` scaffolds a `dev` and a `prod` git branch with
+    **identical application code** — only the production config diverges. Ship by
+    merging `dev` into `prod`; the VPS tracks `prod`.
+
+---
+
+## Security (`sec`)
+
+**shasec** audits a project and probes a running API. Findings carry a severity,
+and the command **exits non-zero on any HIGH/CRITICAL** (CI-friendly). Pure
+stdlib — no extra dependency.
+
+### `shaapi sec audit`
+
+Static audit of the project: default secrets, committed credentials, exposed
+datastore ports, root container, weak cookies, ungated docs, external geo-IP,
+and the presence of the production fail-fast guard.
+
+### `shaapi sec auth <url>`
+
+Black-box authentication probes against a running API: forge a JWT with the
+default secret, detect unprotected routes, and check login rate-limiting.
+
+```bash
+shaapi sec auth http://localhost:8000/admin/api/v1
+```
+
+### `shaapi sec scan <url>`
+
+Report missing security headers and the exposed OpenAPI surface.
+
+### `shaapi sec ports <host>`
+
+Check TCP reachability of the datastore ports (5432 / 6379 / 9000 / 9001) on a
+host — open in dev, closed under `--prod`.
+
+```bash
+shaapi sec ports localhost
 ```
 
 ---

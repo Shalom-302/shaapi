@@ -98,7 +98,11 @@ def _ensure_env(root: Path) -> None:
 
 def _compose_files(root: Path, *, monitoring: bool, prod: bool) -> list[str]:
     files = ["-f", str(root / "docker-compose.yml")]
-    if not prod:
+    if prod:
+        prod_file = root / "docker-compose.prod.yml"
+        if prod_file.exists():
+            files += ["-f", str(prod_file)]
+    else:
         override = root / "docker-compose.override.yml"
         if override.exists():
             files += ["-f", str(override)]

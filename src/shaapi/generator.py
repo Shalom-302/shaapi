@@ -14,6 +14,7 @@ from pathlib import Path
 
 TEMPLATE_DIR = Path(__file__).resolve().parent / "template"
 PLUGINS_DIR = Path(__file__).resolve().parent / "plugins"
+PROD_TEMPLATE_DIR = Path(__file__).resolve().parent / "prod_template"
 
 # Path components never copied into a generated project.
 _EXCLUDE_NAMES = {
@@ -61,6 +62,7 @@ def create_project(
     *,
     monitoring: bool = False,
     git_init: bool = True,
+    prod: bool = False,
 ) -> Path:
     """Generate a new shaapi project and return its path.
 
@@ -115,13 +117,76 @@ def create_project(
             env_template.read_text(encoding="utf-8"), encoding="utf-8", newline="\n"
         )
 
-    if git_init:
+    if prod:
+        _init_dev_prod_branches(dest, slug)
+    elif git_init:
         try:
             subprocess.run(["git", "init", "-q"], cwd=dest, check=True)
         except (subprocess.CalledProcessError, FileNotFoundError, OSError):
             pass  # git is optional; never fail project creation over it
 
     return dest
+
+
+def write_prod_artifacts(dest: Path | str, slug: str) -> list[Path]:
+    """Render the production overlay + deploy scripts into *dest* (rebranded).
+
+    Used both by ``create_project(prod=True)`` and ``shaapi ops harden``.
+    Returns the written paths, relative to *dest*.
+    """
+    dest = Path(dest)
+    if not PROD_TEMPLATE_DIR.is_dir():
+        raise RuntimeError(f"Production template not found at {PROD_TEMPLATE_DIR}")
+    written: list[Path] = []
+    for src in sorted(PROD_TEMPLATE_DIR.rglob("*")):
+        if src.is_dir():
+            continue
+        rel = src.relative_to(PROD_TEMPLATE_DIR)
+        target = dest / Path(_rebrand(str(rel), slug))
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if src.suffix in _BINARY_SUFFIXES:
+            shutil.copy2(src, target)
+        else:
+            target.write_text(
+                _rebrand(src.read_text(encoding="utf-8"), slug),
+                encoding="utf-8",
+                newline="\n",
+            )
+        written.append(target.relative_to(dest))
+    return written
+
+
+def _init_dev_prod_branches(dest: Path, slug: str) -> None:
+    """git init with a lean ``dev`` branch and a ``prod`` branch carrying the
+    production config. The application code is identical on both — only the
+    config diverges. Leaves the working tree on ``dev``.
+
+    git is optional: any failure degrades gracefully (the dev files are already
+    on disk) instead of aborting project creation.
+    """
+    ident = ["-c", "user.email=scaffold@shaapi.local", "-c", "user.name=shaapi"]
+
+    def git(*args: str) -> None:
+        subprocess.run(
+            ["git", *args], cwd=dest, check=True, capture_output=True, text=True
+        )
+
+    try:
+        try:
+            git("init", "-q", "-b", "dev")
+        except subprocess.CalledProcessError:
+            git("init", "-q")  # git < 2.28 has no -b
+            git("checkout", "-q", "-b", "dev")
+        git("add", "-A")
+        git(*ident, "commit", "-q", "-m", "chore: initial dev scaffold")
+        git("checkout", "-q", "-b", "prod")
+        write_prod_artifacts(dest, slug)
+        git("add", "-A")
+        git(*ident, "commit", "-q", "-m",
+            "chore(ops): production config overlay + deploy scripts")
+        git("checkout", "-q", "dev")
+    except (subprocess.CalledProcessError, FileNotFoundError, OSError):
+        pass  # git unavailable or failed; dev files remain on disk
 
 
 # --------------------------------------------------------------------------- #

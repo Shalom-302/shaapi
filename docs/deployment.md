@@ -4,6 +4,12 @@ shaapi ships a dev-first workflow (source bind-mount + hot-reload) and a
 production mode (baked image, no mount). This guide takes you to a running
 production deployment on a VPS.
 
+!!! tip "Let shaops do it"
+    `shaapi ops` generates the hardened production overlay, strong secrets and
+    the VPS provisioning/firewall scripts for you — see
+    [Production (shaops)](production.md). This page explains what happens under
+    the hood.
+
 ## Dev vs prod, in one picture
 
 | | Dev (default) | Prod (`--prod`) |

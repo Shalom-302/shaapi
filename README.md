@@ -17,9 +17,9 @@ workflow — generated in seconds.
 
 ```bash
 pip install shaapi
-shaapi create-project "my api"
+shaapi new "my api"
 cd my_api
-./docker-run.sh up
+shaapi up
 ```
 
 → API live at `http://localhost:8000`, Swagger at `http://localhost:8000/admin/api/v1/docs`.
@@ -31,28 +31,38 @@ cd my_api
 - **Redis** cache + rate limiting
 - **JWT auth** + **Casbin RBAC** (users, roles, permissions)
 - **File storage** (MinIO / S3 / GCS)
-- **Docker**: multi-stage slim image built with [uv], hot-reload in dev (source bind-mount), `docker-run.sh` orchestration
+- **Docker**: multi-stage slim image built with [uv], hot-reload in dev (source bind-mount), cross-platform `shaapi` orchestration (no bash)
 - **Opt-in observability** (`--monitoring`): Prometheus, Grafana, Tempo, Loki
+- **Production tooling** (`shaapi ops`): hardened compose overlay (datastores off the public network), secret generation, VPS provisioning/firewall scripts, and a `dev`/`prod` git-branch split (same code, config-only divergence)
+- **Security testing** (`shaapi sec`): static audit + black-box probes (default-secret JWT forge, auth, login rate-limit, exposed ports), with a CI-friendly exit code
+
+> Generated projects are **secure by default**: a production fail-fast guard refuses to boot with default secrets, the container runs non-root, and the datastores are never exposed in production.
 
 ## CLI
 
 ```bash
-shaapi create-project "my api"          # interactive
-shaapi create-project "my api" -y       # accept defaults
-shaapi create-project "my api" --monitoring --no-git
+shaapi new "my api"                       # interactive scaffold
+shaapi new "my api" -y                    # accept defaults
+shaapi new "my api" --prod                # + production config on a `prod` git branch
+shaapi up / db apply / auth init          # run the stack (cross-platform docker wrapper)
+shaapi ops harden / secrets / checklist   # production hardening (shaops)
+shaapi sec audit / auth / scan / ports    # security testing (shasec)
 shaapi --version
 ```
 
 ## In your generated project
 
 ```bash
-./docker-run.sh up            # build + start everything (dev: hot-reload)
-./docker-run.sh up --monitoring
-./docker-run.sh logs          # tail logs
-./docker-run.sh migrate       # alembic upgrade head
-./docker-run.sh makemigrations "add posts table"
-./docker-run.sh down
+shaapi up                       # build + start everything (dev: hot-reload)
+shaapi up --prod                # production: datastores not exposed
+shaapi db apply                 # alembic upgrade head
+shaapi db generate -m "add posts table"
+shaapi auth init                # create the first admin
+shaapi logs / shaapi down
 ```
+
+> On Linux/macOS a bundled `./docker-run.sh` offers the same commands if you
+> prefer a plain shell script.
 
 ## Documentation
 

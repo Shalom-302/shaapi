@@ -140,10 +140,10 @@ Common variables:
 
 ## Authentication
 
-`{{cli}} auth init` creates an admin user (with the `admin` role) inside the
-running API container, then you log in from Swagger at
-`/admin/api/v1/docs`. The bundled seed also ships an example admin
-(`admin@shaapi.dev` / `admin1234`) for quick local testing.
+`{{cli}} auth init` creates the first admin user (with the `admin` role) inside
+the running API container; you then log in from Swagger at
+`/admin/api/v1/docs`. No admin is seeded by default — create yours with
+`{{cli}} auth init`.
 
 ## License
 

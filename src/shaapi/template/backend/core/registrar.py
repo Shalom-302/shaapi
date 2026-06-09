@@ -53,17 +53,17 @@ async def register_init(app: FastAPI):
 
 def register_app(router: APIRouter, name: str = "Parse name" ) -> FastAPI:
     # FastAPI
+    # Interactive API docs are served in dev/preprod but disabled in prod, where
+    # the full API surface should not be publicly browsable.
+    _expose_docs = settings.ENVIRONMENT != "prod"
     app = FastAPI(
         title=f"[{settings.ENVIRONMENT.upper()}] {settings.FASTAPI_TITLE} {name.upper()}",
-        contact={
-            "name": "shaapi",
-            "email": "shalomtehe219@gmail.com",
-        },
+        contact={"name": "shaapi"},
         version=settings.FASTAPI_VERSION,
         description=settings.FASTAPI_DESCRIPTION,
-        docs_url=f"{settings.FASTAPI_DOCS_URL}",
-        redoc_url=f"{settings.FASTAPI_REDOCS_URL}",
-        openapi_url=f"{settings.FASTAPI_OPENAPI_URL}",
+        docs_url=settings.FASTAPI_DOCS_URL if _expose_docs else None,
+        redoc_url=settings.FASTAPI_REDOCS_URL if _expose_docs else None,
+        openapi_url=settings.FASTAPI_OPENAPI_URL if _expose_docs else None,
         default_response_class=MsgSpecJSONResponse,
         # NOTE: the lifespan is owned by the parent app (see backend/main.py).
         # Starlette does NOT run the lifespan of mounted sub-applications, so
