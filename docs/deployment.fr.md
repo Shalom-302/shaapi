@@ -4,6 +4,12 @@ shaapi propose un workflow orienté dev (montage du code + hot-reload) et un mod
 production (image figée, sans montage). Ce guide vous mène à un déploiement de
 production sur un VPS.
 
+!!! tip "Laissez shaops faire"
+    `shaapi ops` génère pour vous l'overlay de production durci, des secrets
+    forts et les scripts de provisionnement/pare-feu du VPS — voir
+    [Production (shaops)](production.md). Cette page explique ce qui se passe
+    sous le capot.
+
 ## Dev vs prod, en une image
 
 | | Dev (défaut) | Prod (`--prod`) |
